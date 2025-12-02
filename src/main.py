@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
         #Setting window properties
         self.setWindowTitle("Munchy")
         self.setGeometry(800, 800, 1400, 900)
-        self.setStyleSheet("background-color: #3c3c3c")
+        self.setStyleSheet("background-color: #24201f")
 
     def read_data_file(self):
         #TODO - read profile/theme/data from json
@@ -39,52 +39,109 @@ class MainWindow(QMainWindow):
                 #Pantry page
                 #Shopping list page
 
-        #title bar
+        #title bar elements
+        self.title_label = QLabel("", self)
+        self.title_label.setFixedWidth(280)
+        self.title_label.setFixedHeight(44)
+        self.title_label.setStyleSheet("image: url(./assets/titlebar/title.png)")
 
-        self.title_label = QLabel("Munchy", self)
-        self.title_label.setFont(QFont("Arial", 14))
-        self.title_label.setStyleSheet("text-align: center")
-
-        self.min_button = QPushButton("_", self)
-        self.min_button.setFont(QFont("Arial", 14))
-        self.min_button.setFixedWidth(40)
-        self.min_button.setFixedHeight(28)
+        self.min_button = QPushButton("", self)
+        self.min_button.setFixedWidth(48)
+        self.min_button.setFixedHeight(44)
+        self.min_button.setFocusPolicy(Qt.NoFocus)
         self.min_button.clicked.connect(self.showMinimized)
+        self.min_button.setStyleSheet(f"""
+                                        QPushButton {{
+                                            image: url(assets/titlebar/min.png);
+                                            background-color: transparent;
+                                            outline: none;
+                                            padding: 0px;
+                                            margin: 0px;
+                                            border: none;
+                                        }}
+                                        QPushButton:hover {{                                                        
+                                            image: url(assets/titlebar/min_highlight.png);
+                                        }}
+                                        QPushButton:focus {{ 
+                                            image: url(assets/titlebar/min.png);
+                                            border: none;
+                                        }}""")
+        
 
-        self.max_button = QPushButton("O", self)
-        self.max_button.setFont(QFont("Arial", 14))
-        self.max_button.setFixedWidth(40)
-        self.max_button.setFixedHeight(28)
+        self.max_button = QPushButton("", self)
+        self.max_button.setFixedWidth(48)
+        self.max_button.setFixedHeight(44)
+        self.max_button.setFocusPolicy(Qt.NoFocus)
         self.max_button.clicked.connect(self.showMaximized)
+        self.max_button.setStyleSheet(f"""
+                                        QPushButton {{
+                                            image: url(./assets/titlebar/max.png);
+                                            background-color: transparent;
+                                            outline: none;
+                                            padding: 0px;
+                                            margin: 0px;
+                                            border: none;
+                                        }}
+                                        QPushButton:hover {{                                                        
+                                            image: url(./assets/titlebar/max_highlight.png);
+                                        }}
+                                        QPushButton:focus {{ 
+                                            image: url(./assets/titlebar/max.png);
+                                        }}""")
 
-        self.exit_button = QPushButton("X", self)
-        self.exit_button.setFont(QFont("Arial", 14))
-        self.exit_button.setFixedWidth(40)
-        self.exit_button.setFixedHeight(28)
+        self.exit_button = QPushButton("", self)
+        self.exit_button.setFixedWidth(48)
+        self.exit_button.setFixedHeight(44)
+        self.exit_button.setFocusPolicy(Qt.NoFocus)
         self.exit_button.clicked.connect(QApplication.instance().quit)
+        self.exit_button.setStyleSheet(f"""
+                                        QPushButton {{
+                                            image: url(./assets/titlebar/exit.png);
+                                            background-color: transparent;
+                                            outline: none;
+                                            padding: 0px;
+                                            margin: 0px;
+                                            border: none;
+                                        }}
+                                        QPushButton:hover {{                                                        
+                                            image: url(./assets/titlebar/exit_highlight.png);
+                                        }}
+                                        QPushButton:focus {{ 
+                                            image: url(./assets/titlebar/exit_highlight.png);
+                                        }}""")
 
-        self.blank_space = QLabel("")
 
-
-        #Application widget is the container shown in the window 
+        #Central application widget - This is the widget that covers the full application
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        #Application grid(custom - vbox and hbox) is the layout structure of internal widgets
+        #Central application layout
         vbox = QVBoxLayout()
-        titlebar = QHBoxLayout()
-        test = QHBoxLayout()
-        test2 = QHBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.setSpacing(0)
 
-        titlebar.addStretch()
-        titlebar.addWidget(self.title_label)
-        titlebar.addStretch()
-        titlebar.addWidget(self.min_button)
-        titlebar.addWidget(self.max_button)
-        titlebar.addWidget(self.exit_button)
-        vbox.addLayout(titlebar)
+        #Titlebar Widget - Also setting the layout of the titlebar elements within the widget
+        titlebar_widget = QWidget()
+        titlebar_widget.setStyleSheet("background-color: #161515")
+
+        titlebar_layout = QHBoxLayout()
+        titlebar_layout.setContentsMargins(0, 0, 0, 0)
+        titlebar_layout.setSpacing(4)
+
+        #Sorting titlebar elements
+        titlebar_layout.addStretch()
+        titlebar_layout.addWidget(self.title_label)
+        titlebar_layout.addStretch()
+        titlebar_layout.addWidget(self.min_button)
+        titlebar_layout.addWidget(self.max_button)
+        titlebar_layout.addWidget(self.exit_button)
+
+        titlebar_widget.setLayout(titlebar_layout)
+
+        vbox.addWidget(titlebar_widget)
 
         vbox.addStretch()
+        
 
         central_widget.setLayout(vbox)
 
