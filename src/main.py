@@ -2,12 +2,14 @@ import sys
 import json
 import datetime
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
 from PyQt5.QtGui import QFont
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.profiles = True
+
         #Initiation methods
         self.read_data_file()
         self.initUI()
@@ -15,11 +17,16 @@ class MainWindow(QMainWindow):
 
         #Setting window properties
         self.setWindowTitle("Munchy")
-        self.setGeometry(900, 400, 140, 140)
+        self.setGeometry(800, 800, 1400, 900)
+        self.setStyleSheet("background-color: #3c3c3c")
 
     def read_data_file(self):
         #TODO - read profile/theme/data from json
-        pass
+        with open('./src/data.json', 'r') as f:
+            data = json.load(f)
+            self.profiles = data['profiles']
+            self.consumables = data['consumables']
+            self.recipes = data['recipes']
 
     def initUI(self):
         #TODO - 
@@ -31,7 +38,62 @@ class MainWindow(QMainWindow):
                 #Planner page
                 #Pantry page
                 #Shopping list page
-        pass
+
+        #title bar
+
+        self.title_label = QLabel("Munchy", self)
+        self.title_label.setFont(QFont("Arial", 14))
+        self.title_label.setStyleSheet("text-align: center")
+
+        self.min_button = QPushButton("_", self)
+        self.min_button.setFont(QFont("Arial", 14))
+        self.min_button.setFixedWidth(40)
+        self.min_button.setFixedHeight(28)
+        self.min_button.clicked.connect(self.showMinimized)
+
+        self.max_button = QPushButton("O", self)
+        self.max_button.setFont(QFont("Arial", 14))
+        self.max_button.setFixedWidth(40)
+        self.max_button.setFixedHeight(28)
+        self.max_button.clicked.connect(self.showMaximized)
+
+        self.exit_button = QPushButton("X", self)
+        self.exit_button.setFont(QFont("Arial", 14))
+        self.exit_button.setFixedWidth(40)
+        self.exit_button.setFixedHeight(28)
+        self.exit_button.clicked.connect(QApplication.instance().quit)
+
+        self.blank_space = QLabel("")
+
+
+        #Application widget is the container shown in the window 
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+
+        #Application grid(custom - vbox and hbox) is the layout structure of internal widgets
+        vbox = QVBoxLayout()
+        titlebar = QHBoxLayout()
+        test = QHBoxLayout()
+        test2 = QHBoxLayout()
+
+        titlebar.addStretch()
+        titlebar.addWidget(self.title_label)
+        titlebar.addStretch()
+        titlebar.addWidget(self.min_button)
+        titlebar.addWidget(self.max_button)
+        titlebar.addWidget(self.exit_button)
+        vbox.addLayout(titlebar)
+
+        vbox.addStretch()
+
+        central_widget.setLayout(vbox)
+
+        if not self.profiles:
+            #initial_login()
+            print("no created profiles")
+        
+        else:
+            pass
 
     def initGrid(self):
         #TODO - Set up the initial grid with titlebar, profile page and tabs
