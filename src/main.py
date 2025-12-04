@@ -1,24 +1,47 @@
 import sys
 import json
 import datetime
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
+from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QComboBox, QPushButton
 from PyQt5.QtGui import QFont
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.profiles = True
 
         #Initiation methods
         self.read_data_file()
         self.initUI()
-        self.initGrid()
 
         #Setting window properties
         self.setWindowTitle("Munchy")
-        self.setGeometry(800, 800, 1400, 900)
+        self.setMinimumSize(1400, 1100)
+        self.setMaximumSize(1400, 1100)
         self.setStyleSheet("background-color: #24201f")
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.oldPos = self.pos()
+
+    def mousePressEvent(self, event):
+        x = event.pos().x()
+        y = event.pos().y()
+
+        width = self.width()
+
+        if (0 < x < width - 96 and 0 < y < 44):
+            self.dragging = True
+            self.oldPos = event.globalPos()
+        else:
+            self.dragging = False
+
+    def mouseMoveEvent(self, event):
+
+        if self.dragging:
+            delta = QPoint(event.globalPos() - self.oldPos)
+            self.move(self.x() + delta.x(), self.y() + delta.y())
+            self.oldPos = event.globalPos()
+    
+    def mouseReleaseEvent(self, event):
+        self.dragging = False
 
     def read_data_file(self):
         #TODO - read profile/theme/data from json
@@ -29,15 +52,6 @@ class MainWindow(QMainWindow):
             self.recipes = data['recipes']
 
     def initUI(self):
-        #TODO - 
-            #Create UI for:
-                #Titlebar and tabs
-                #Profile page
-                #Consumables page
-                #Recipes page
-                #Planner page
-                #Pantry page
-                #Shopping list page
 
         #title bar elements
         self.title_label = QLabel("", self)
@@ -50,75 +64,53 @@ class MainWindow(QMainWindow):
         self.min_button.setFixedHeight(44)
         self.min_button.setFocusPolicy(Qt.NoFocus)
         self.min_button.clicked.connect(self.showMinimized)
-        self.min_button.setStyleSheet(f"""
-                                        QPushButton {{
+        self.min_button.setStyleSheet("""
+                                        QPushButton {
                                             image: url(assets/titlebar/min.png);
                                             background-color: transparent;
                                             outline: none;
                                             padding: 0px;
                                             margin: 0px;
                                             border: none;
-                                        }}
-                                        QPushButton:hover {{                                                        
+                                        }
+                                        QPushButton:hover {                                                        
                                             image: url(assets/titlebar/min_highlight.png);
-                                        }}
-                                        QPushButton:focus {{ 
+                                        }
+                                        QPushButton:focus {
                                             image: url(assets/titlebar/min.png);
                                             border: none;
-                                        }}""")
-        
-
-        self.max_button = QPushButton("", self)
-        self.max_button.setFixedWidth(48)
-        self.max_button.setFixedHeight(44)
-        self.max_button.setFocusPolicy(Qt.NoFocus)
-        self.max_button.clicked.connect(self.showMaximized)
-        self.max_button.setStyleSheet(f"""
-                                        QPushButton {{
-                                            image: url(./assets/titlebar/max.png);
-                                            background-color: transparent;
-                                            outline: none;
-                                            padding: 0px;
-                                            margin: 0px;
-                                            border: none;
-                                        }}
-                                        QPushButton:hover {{                                                        
-                                            image: url(./assets/titlebar/max_highlight.png);
-                                        }}
-                                        QPushButton:focus {{ 
-                                            image: url(./assets/titlebar/max.png);
-                                        }}""")
+                                        }""")
 
         self.exit_button = QPushButton("", self)
         self.exit_button.setFixedWidth(48)
         self.exit_button.setFixedHeight(44)
         self.exit_button.setFocusPolicy(Qt.NoFocus)
         self.exit_button.clicked.connect(QApplication.instance().quit)
-        self.exit_button.setStyleSheet(f"""
-                                        QPushButton {{
+        self.exit_button.setStyleSheet("""
+                                        QPushButton {
                                             image: url(./assets/titlebar/exit.png);
                                             background-color: transparent;
                                             outline: none;
                                             padding: 0px;
                                             margin: 0px;
                                             border: none;
-                                        }}
-                                        QPushButton:hover {{                                                        
+                                        }
+                                        QPushButton:hover {                                                      
                                             image: url(./assets/titlebar/exit_highlight.png);
-                                        }}
-                                        QPushButton:focus {{ 
+                                        }
+                                        QPushButton:focus {
                                             image: url(./assets/titlebar/exit_highlight.png);
-                                        }}""")
+                                        }""")
 
 
         #Central application widget - This is the widget that covers the full application
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
 
         #Central application layout
-        vbox = QVBoxLayout()
-        vbox.setContentsMargins(0, 0, 0, 0)
-        vbox.setSpacing(0)
+        self.central_layout = QVBoxLayout()
+        self.central_layout.setContentsMargins(0, 0, 0, 0)
+        self.central_layout.setSpacing(0)
 
         #Titlebar Widget - Also setting the layout of the titlebar elements within the widget
         titlebar_widget = QWidget()
@@ -126,45 +118,209 @@ class MainWindow(QMainWindow):
 
         titlebar_layout = QHBoxLayout()
         titlebar_layout.setContentsMargins(0, 0, 0, 0)
-        titlebar_layout.setSpacing(4)
+        titlebar_layout.setSpacing(0)
 
-        #Sorting titlebar elements
+        #Sorting titlebar elements(sub-widgets of the titlebar widget)
         titlebar_layout.addStretch()
         titlebar_layout.addWidget(self.title_label)
         titlebar_layout.addStretch()
         titlebar_layout.addWidget(self.min_button)
-        titlebar_layout.addWidget(self.max_button)
         titlebar_layout.addWidget(self.exit_button)
 
+        #Applying the titlebar layout to the titlebar widget
         titlebar_widget.setLayout(titlebar_layout)
 
-        vbox.addWidget(titlebar_widget)
-
-        vbox.addStretch()
-        
-
-        central_widget.setLayout(vbox)
+        #Adding the titlebar as a widget of the central widget layout
+        self.central_layout.addWidget(titlebar_widget, 0)
 
         if not self.profiles:
-            #initial_login()
-            print("no created profiles")
-        
-        else:
+            self.initial_login()
             pass
-
-    def initGrid(self):
-        #TODO - Set up the initial grid with titlebar, profile page and tabs
-        pass
-
-    def tab_switcher(self):
-        #TODO - Logic for switching widgets when a tab is pressed to call a new page
-        pass
 
     def initial_login(self):
         #TODO - Logic called by default when there is no saved profiles
-        #Sets an overlay allowing user to create a profile
-        save_profile()
+
+
+        #Profile widget elements
+
+        #Center column - Row 1 - Profile picture
+        profile_picture = QLabel(self)
+        profile_picture.setFixedHeight(260)
+        profile_picture.setFixedWidth(260)
+        profile_picture.setStyleSheet("background-color: #171514; border: 3px solid black; border-radius: 20px")
+
+        #Center column - Row 2 - Name
+        name_text = QLineEdit(self)
+        name_text.setPlaceholderText("Name")
+        name_text.setFixedHeight(60)
+        name_text.setAlignment(Qt.AlignCenter)
+        name_text.setFont(QFont("Times New Roman", 20))
+        name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 3px solid black; border-radius: 14px")
+
+        #Center column - Row 3 - D.O.B
+            
+            #elements left to right
+            
+        # -- element 1 --
+        day_combo = QComboBox(self)
+        day_combo.setFixedHeight(60)
+        day_combo.setFixedWidth(146)
+        day_combo.setFont(QFont("Times New Roman", 20))
+        day_combo.setStyleSheet("""
+                                QComboBox {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px; radius: 14px
+                                }
+                                
+                                QComboBox::drop-down {
+                                    border-top-right-radius: 4px; border-top-right-radius: 4px;
+                                }""")
+
+        day_combo.addItems(["01", "02", "03", "04"])
+
+        # -- element 2 --
+        month_text = QLineEdit(self)
+        month_text.setPlaceholderText("MM")
+        month_text.setFixedHeight(60)
+        month_text.setFixedWidth(146)
+        month_text.setAlignment(Qt.AlignCenter)
+        month_text.setFont(QFont("Times New Roman", 20))
+        month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 3px solid black; border-radius: 14px")
+
+        # -- element 3 --
+        year_text = QLineEdit(self)
+        year_text.setPlaceholderText("YYYY")
+        year_text.setFixedHeight(60)
+        year_text.setFixedWidth(296)
+        year_text.setAlignment(Qt.AlignCenter)
+        year_text.setFont(QFont("Times New Roman", 20))
+        year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 3px solid black; border-radius: 14px")
+
+        #Center column - Row 4 - Height
+            
+            #elements left to right
+
+        # -- element 1 --
+        height_label = QLabel("Height:", self)
+        height_label.setFixedHeight(60)
+        height_label.setFixedWidth(296)
+        height_label.setAlignment(Qt.AlignCenter)
+        height_label.setFont(QFont("Times New Roman", 20))
+        height_label.setStyleSheet("color: #645e59; background-color: #171514; border: 3px solid black; border-radius: 14px")
+
+        # -- element 2 --
+        foot_height_text = QLineEdit(self)
+        foot_height_text.setPlaceholderText("ft")
+        foot_height_text.setFixedHeight(60)
+        foot_height_text.setFixedWidth(146)
+        foot_height_text.setAlignment(Qt.AlignCenter)
+        foot_height_text.setFont(QFont("Times New Roman", 20))
+        foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 3px solid black; border-radius: 14px")
+
+        # -- element 3 --
+        inch_height_text = QLineEdit(self)
+        inch_height_text.setPlaceholderText("in")
+        inch_height_text.setFixedHeight(60)
+        inch_height_text.setFixedWidth(146)
+        inch_height_text.setAlignment(Qt.AlignCenter)
+        inch_height_text.setFont(QFont("Times New Roman", 20))
+        inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 3px solid black; border-radius: 14px")
+
+        #Center column - Row 5
+            
+            #elements left to right
+            
+        # -- element 1 --
+        weight_text = QLineEdit("Weight", self)
+        weight_text.setFixedHeight(60)
+        weight_text.setAlignment(Qt.AlignCenter)
+        weight_text.setFont(QFont("Times New Roman", 20))
+        weight_text.setStyleSheet("background-color: #51a6db")
+
+        #Center column - Row 6
+        # -- element 1 --
+        activity_text = QLineEdit("Activity", self)
+        activity_text.setFixedHeight(60)
+        activity_text.setAlignment(Qt.AlignCenter)
+        activity_text.setFont(QFont("Times New Roman", 20))
+        activity_text.setStyleSheet("background-color: #51a6db")
+
+        #Create profile widget containing form for first profile
+        profile_widget = QWidget()
+
+        profile_col_left_widget = QWidget()
+        profile_col_left_widget.setStyleSheet("background-color: #24201f")
+
+        profile_col_center_widget = QWidget()
+        profile_col_center_widget.setFixedWidth(600)
+        profile_col_center_widget.setStyleSheet("background-color: #24201f")
+
+        profile_col_center_layout = QVBoxLayout()
+        profile_col_center_layout.setContentsMargins(0, 0, 0, 0)
+        profile_col_center_layout.setSpacing(40)
+
+        profile_row3_center_widget = QWidget()
+        profile_row3_center_widget.setFixedHeight(60)
+
+        profile_row3_center_layout = QHBoxLayout()
+        profile_row3_center_layout.setContentsMargins(0, 0, 0, 0)
+        profile_row3_center_layout.setSpacing(6)
+
+        profile_row3_center_layout.addWidget(day_combo)
+        profile_row3_center_layout.addWidget(month_text)
+        profile_row3_center_layout.addWidget(year_text)
+
+        profile_row3_center_widget.setLayout(profile_row3_center_layout)
+####
+        profile_row4_center_widget = QWidget()
+        profile_row4_center_widget.setFixedHeight(60)
+
+        profile_row4_center_layout = QHBoxLayout()
+        profile_row4_center_layout.setContentsMargins(0, 0, 0, 0)
+        profile_row4_center_layout.setSpacing(6)
+
+        profile_row4_center_layout.addWidget(height_label)
+        profile_row4_center_layout.addWidget(foot_height_text)
+        profile_row4_center_layout.addWidget(inch_height_text)
+
+        profile_row4_center_widget.setLayout(profile_row4_center_layout)
+
+
+        profile_col_center_layout.addStretch()
+        profile_col_center_layout.addSpacing(80)
+        profile_col_center_layout.addWidget(profile_picture, alignment=Qt.AlignHCenter)
+        profile_col_center_layout.addSpacing(80)
+        profile_col_center_layout.addWidget(name_text)
+        profile_col_center_layout.addWidget(profile_row3_center_widget)
+        profile_col_center_layout.addWidget(profile_row4_center_widget)
+        profile_col_center_layout.addWidget(weight_text)
+        profile_col_center_layout.addWidget(activity_text)
+        profile_col_center_layout.addSpacing(140)
+        
+
+        profile_col_center_widget.setLayout(profile_col_center_layout)
+
+        profile_col_right_widget = QWidget()
+        profile_col_right_widget.setStyleSheet("background-color: #24201f")
+
+        profile_layout = QHBoxLayout()
+        profile_layout.setContentsMargins(0, 0, 0, 0)
+        profile_layout.setSpacing(0)
+
+        profile_layout.addWidget(profile_col_left_widget)
+        profile_layout.addWidget(profile_col_center_widget, alignment=Qt.AlignHCenter)
+        profile_layout.addWidget(profile_col_right_widget)
+        profile_widget.setLayout(profile_layout)
+
+        self.central_layout.addWidget(profile_widget, stretch=1)
+        
+        self.central_widget.setLayout(self.central_layout)
+
+        #save_profile()
         #Then remove the overlay
+            #pass
+
+    def tab_switcher(self):
+        #TODO - Logic for switching widgets when a tab is pressed to call a new page
         pass
 
     def save_profile(self):
