@@ -5,13 +5,25 @@ from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QComboBox, QPushButton
 from PyQt5.QtGui import QFont
 
+class Profile:
+    def __init__(self, dob, height, weight, activity):
+        self.dob = dob
+        self.height = height
+        self.weight = weight
+        self.activity = activity
+
+class Profiles:
+    def __init__(self):
+        self.profile = {}
+
+    def add_profile(self, name, dob, height, weight, activity):
+        self.profile[name] = Profile(dob, height, weight, activity)
+    
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        #Initiation methods
-        self.read_data_file()
-        self.initUI()
 
         #Setting window properties
         self.setWindowTitle("Munchy")
@@ -19,8 +31,19 @@ class MainWindow(QMainWindow):
         self.setMaximumSize(1400, 1100)
         self.setStyleSheet("background-color: #24201f")
         self.setWindowFlags(Qt.FramelessWindowHint)
+
+        #Mouse pos
         self.oldPos = self.pos()
 
+        #Creating the profiles instance from the Profiles class
+            #This is one instance that will hold all of the user profiles
+        self.profiles = Profiles()
+
+        #Initiation methods
+        self.read_data_file()
+        self.initUI()
+
+    #Check the mouse pos when user clicks and determine if area is titlebar
     def mousePressEvent(self, event):
         x = event.pos().x()
         y = event.pos().y()
@@ -33,6 +56,7 @@ class MainWindow(QMainWindow):
         else:
             self.dragging = False
 
+    #If mouse clicked on titlebar then window is able to be moved with mouse
     def mouseMoveEvent(self, event):
 
         if self.dragging:
@@ -40,16 +64,16 @@ class MainWindow(QMainWindow):
             self.move(self.x() + delta.x(), self.y() + delta.y())
             self.oldPos = event.globalPos()
     
+    #resets dragging bool to false to prevent moving window from other areas
     def mouseReleaseEvent(self, event):
         self.dragging = False
 
     def read_data_file(self):
-        #TODO - read profile/theme/data from json
-        with open('./src/data.json', 'r') as f:
-            data = json.load(f)
-            self.profiles = data['profiles']
-            self.consumables = data['consumables']
-            self.recipes = data['recipes']
+        with open('./src/data.json', 'r') as json_file:
+            data = json.load(json_file)
+            self.current_profiles = data['profiles']
+            #self.consumables = data['consumables']
+            #self.recipes = data['recipes']
 
     def initUI(self):
 
@@ -123,6 +147,7 @@ class MainWindow(QMainWindow):
         #Sorting titlebar elements(sub-widgets of the titlebar widget)
         titlebar_layout.addStretch()
         titlebar_layout.addWidget(self.title_label)
+        titlebar_layout.addSpacing(48)
         titlebar_layout.addStretch()
         titlebar_layout.addWidget(self.min_button)
         titlebar_layout.addWidget(self.exit_button)
@@ -133,13 +158,11 @@ class MainWindow(QMainWindow):
         #Adding the titlebar as a widget of the central widget layout
         self.central_layout.addWidget(titlebar_widget, 0)
 
-        if not self.profiles:
+        if not self.profiles.profile:
             self.initial_login()
-            pass
 
     def initial_login(self):
         #TODO - Logic called by default when there is no saved profiles
-
 
         #Profile widget elements
 
@@ -147,144 +170,154 @@ class MainWindow(QMainWindow):
         profile_picture = QLabel(self)
         profile_picture.setFixedHeight(260)
         profile_picture.setFixedWidth(260)
+        profile_picture.setFocusPolicy(Qt.StrongFocus)
         profile_picture.setStyleSheet("background-color: #171514; border: 2px solid black; border-radius: 20px")
 
         #Center column - Row 2 - Name
-        name_text = QLineEdit(self)
-        name_text.setPlaceholderText("Name")
-        name_text.setFixedHeight(60)
-        name_text.setAlignment(Qt.AlignCenter)
-        name_text.setFont(QFont("Times New Roman", 20))
-        name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.name_text = QLineEdit(self)
+        self.name_text.setPlaceholderText("Name")
+        self.name_text.setFixedHeight(60)
+        self.name_text.setAlignment(Qt.AlignCenter)
+        self.name_text.setFont(QFont("Times New Roman", 20))
+        self.name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Center column - Row 3 - D.O.B
             
             #elements left to right
             
         # -- element 1 --
-        day_text = QLineEdit(self)
-        day_text.setPlaceholderText("DD")
-        day_text.setFixedHeight(60)
-        day_text.setFixedWidth(146)
-        day_text.setAlignment(Qt.AlignCenter)
-        day_text.setFont(QFont("Times New Roman", 20))
-        day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.day_text = QLineEdit(self)
+        self.day_text.setPlaceholderText("DD")
+        self.day_text.setFixedHeight(60)
+        self.day_text.setFixedWidth(146)
+        self.day_text.setAlignment(Qt.AlignCenter)
+        self.day_text.setFont(QFont("Times New Roman", 20))
+        self.day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         # -- element 2 --
-        month_text = QLineEdit(self)
-        month_text.setPlaceholderText("MM")
-        month_text.setFixedHeight(60)
-        month_text.setFixedWidth(146)
-        month_text.setAlignment(Qt.AlignCenter)
-        month_text.setFont(QFont("Times New Roman", 20))
-        month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.month_text = QLineEdit(self)
+        self.month_text.setPlaceholderText("MM")
+        self.month_text.setFixedHeight(60)
+        self.month_text.setFixedWidth(146)
+        self.month_text.setAlignment(Qt.AlignCenter)
+        self.month_text.setFont(QFont("Times New Roman", 20))
+        self.month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         # -- element 3 --
-        year_text = QLineEdit(self)
-        year_text.setPlaceholderText("YYYY")
-        year_text.setFixedHeight(60)
-        year_text.setFixedWidth(296)
-        year_text.setAlignment(Qt.AlignCenter)
-        year_text.setFont(QFont("Times New Roman", 20))
-        year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.year_text = QLineEdit(self)
+        self.year_text.setPlaceholderText("YYYY")
+        self.year_text.setFixedHeight(60)
+        self.year_text.setFixedWidth(296)
+        self.year_text.setAlignment(Qt.AlignCenter)
+        self.year_text.setFont(QFont("Times New Roman", 20))
+        self.year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Center column - Row 4 - Height
             
             #elements left to right
 
         # -- element 1 --
-        height_label = QLabel("Height:", self)
-        height_label.setFixedHeight(60)
-        height_label.setFixedWidth(296)
-        height_label.setAlignment(Qt.AlignCenter)
-        height_label.setFont(QFont("Times New Roman", 20))
-        height_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.foot_height_text = QLineEdit(self)
+        self.foot_height_text.setPlaceholderText("Height (Feet)")
+        self.foot_height_text.setFixedHeight(60)
+        self.foot_height_text.setFixedWidth(297)
+        self.foot_height_text.setAlignment(Qt.AlignCenter)
+        self.foot_height_text.setFont(QFont("Times New Roman", 20))
+        self.foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         # -- element 2 --
-        foot_height_text = QLineEdit(self)
-        foot_height_text.setPlaceholderText("FT")
-        foot_height_text.setFixedHeight(60)
-        foot_height_text.setFixedWidth(146)
-        foot_height_text.setAlignment(Qt.AlignCenter)
-        foot_height_text.setFont(QFont("Times New Roman", 20))
-        foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-
-        # -- element 3 --
-        inch_height_text = QLineEdit(self)
-        inch_height_text.setPlaceholderText("IN")
-        inch_height_text.setFixedHeight(60)
-        inch_height_text.setFixedWidth(146)
-        inch_height_text.setAlignment(Qt.AlignCenter)
-        inch_height_text.setFont(QFont("Times New Roman", 20))
-        inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.inch_height_text = QLineEdit(self)
+        self.inch_height_text.setPlaceholderText("Height (Inches)")
+        self.inch_height_text.setFixedHeight(60)
+        self.inch_height_text.setFixedWidth(297)
+        self.inch_height_text.setAlignment(Qt.AlignCenter)
+        self.inch_height_text.setFont(QFont("Times New Roman", 20))
+        self.inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Center column - Row 5
             
             #elements left to right
 
         # -- element 1 --
-        weight_text = QLineEdit(self)
-        weight_text.setPlaceholderText("Weight")
-        weight_text.setFixedHeight(60)
-        weight_text.setFixedWidth(297)
-        weight_text.setAlignment(Qt.AlignCenter)
-        weight_text.setFont(QFont("Times New Roman", 20))
-        weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.weight_text = QLineEdit(self)
+        self.weight_text.setPlaceholderText("Weight")
+        self.weight_text.setFixedHeight(60)
+        self.weight_text.setFixedWidth(297)
+        self.weight_text.setAlignment(Qt.AlignCenter)
+        self.weight_text.setFont(QFont("Times New Roman", 20))
+        self.weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         # -- element 2 --
-        weight_combo = QComboBox(self)
-        weight_combo.setFixedHeight(60)
-        weight_combo.setFixedWidth(297)
-        weight_combo.setFont(QFont("Times New Roman", 20))
-        weight_combo.setStyleSheet("""
+        self.weight_combo = QComboBox(self)
+        self.weight_combo.setFixedHeight(60)
+        self.weight_combo.setFixedWidth(297)
+        self.weight_combo.setFont(QFont("Times New Roman", 20))
+        self.weight_combo.setStyleSheet("""
                                 QComboBox {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
-                                    border-radius: 14px; radius: 14px; padding-left: 114 px;
+                                    border-radius: 14px; padding-left: 64px;
                                 }
                                 
                                 QComboBox::drop-down {
                                     border-top-right-radius: 4px; border-top-right-radius: 4px;
                                 }""")
 
-        weight_combo.addItems([
-                                "KG's", 
-                                "LB's"
+        self.weight_combo.addItems([
+                                "▼    KG's    ▼", 
+                                "▼    LB's    ▼"
                                 ])
+        self.weight_combo.setCurrentIndex(0)
 
         #Center column - Row 6
-        activity_combo = QComboBox(self)
-        activity_combo.setFixedHeight(60)
-        activity_combo.setFixedWidth(600)
-        activity_combo.setPlaceholderText("Activity")
-        activity_combo.setFont(QFont("Times New Roman", 20))
-        activity_combo.setStyleSheet("""
+        self.activity_combo = QComboBox(self)
+        self.activity_combo.setFixedHeight(60)
+        self.activity_combo.setFixedWidth(600)
+        self.activity_combo.setPlaceholderText("Activity")
+        self.activity_combo.setFont(QFont("Times New Roman", 20))
+        self.activity_combo.setStyleSheet("""
                                 QComboBox {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
-                                    border-radius: 14px; radius: 14px; padding-left: 40 px;
+                                    border-radius: 14px; padding-left: 10 px;
                                 }
                                 
                                 QComboBox::drop-down {
                                     border-top-right-radius: 4px; border-top-right-radius: 4px;
-                                }""")
-
-        activity_combo.addItems([
-                                "Sedentary: little or no exercise", 
-                                "Light: exercise 1-3 times/week", 
-                                "Moderate: exercise 4-5 times/week", 
-                                "Active: intense exercise 3-4 times/week",
-                                "Very Active: intense exercise 6-7 times/week",
-                                "Extra Active: very intense daily exercise"
-                                ])
-
-        #Right column - save button
-        save_btn = QPushButton("Save", self)
-        save_btn.setFixedHeight(60)
-        save_btn.setFixedWidth(280)
-        save_btn.setFont(QFont("Times New Roman", 20))
-        save_btn.setStyleSheet("""
-                                color: #645e59; background-color: #171514; border: 2px solid black; 
-                                border-radius: 14px; margin-left: 130px; text-align: center;
+                                }
                             """)
+
+        self.activity_combo.addItems([
+                                "▼    Sedentary: little or no exercise", 
+                                "▼    Light: exercise 1-3 times/week", 
+                                "▼    Moderate: exercise 4-5 times/week", 
+                                "▼    Active: intense exercise 3-4 times/week",
+                                "▼    Very Active: intense exercise 6-7 times/week",
+                                "▼    Extra Active: very intense daily exercise"
+                                ])
+        self.activity_combo.setCurrentIndex(2)
+
+        #Right column
+        self.save_btn = QPushButton("Save", self)
+        self.save_btn.setFixedHeight(60)
+        self.save_btn.setFixedWidth(280)
+        self.save_btn.setFont(QFont("Times New Roman", 20))
+        self.save_btn.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; margin-left: 130px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+
+        self.save_btn.clicked.connect(self.save_profile) 
 
         #Create profile widget containing form for first profile
         profile_widget = QWidget()
@@ -307,9 +340,9 @@ class MainWindow(QMainWindow):
         profile_row3_center_layout.setContentsMargins(0, 0, 0, 0)
         profile_row3_center_layout.setSpacing(6)
 
-        profile_row3_center_layout.addWidget(day_text)
-        profile_row3_center_layout.addWidget(month_text)
-        profile_row3_center_layout.addWidget(year_text)
+        profile_row3_center_layout.addWidget(self.day_text)
+        profile_row3_center_layout.addWidget(self.month_text)
+        profile_row3_center_layout.addWidget(self.year_text)
 
         profile_row3_center_widget.setLayout(profile_row3_center_layout)
 
@@ -320,10 +353,8 @@ class MainWindow(QMainWindow):
         profile_row4_center_layout.setContentsMargins(0, 0, 0, 0)
         profile_row4_center_layout.setSpacing(6)
 
-        profile_row4_center_layout.addWidget(height_label)
-        profile_row4_center_layout.addStretch()
-        profile_row4_center_layout.addWidget(foot_height_text)
-        profile_row4_center_layout.addWidget(inch_height_text)
+        profile_row4_center_layout.addWidget(self.foot_height_text)
+        profile_row4_center_layout.addWidget(self.inch_height_text)
 
         profile_row4_center_widget.setLayout(profile_row4_center_layout)
 
@@ -334,8 +365,8 @@ class MainWindow(QMainWindow):
         profile_row5_center_layout.setContentsMargins(0, 0, 0, 0)
         profile_row5_center_layout.setSpacing(6)
 
-        profile_row5_center_layout.addWidget(weight_text)
-        profile_row5_center_layout.addWidget(weight_combo)
+        profile_row5_center_layout.addWidget(self.weight_text)
+        profile_row5_center_layout.addWidget(self.weight_combo)
 
         profile_row5_center_widget.setLayout(profile_row5_center_layout)
 
@@ -344,11 +375,11 @@ class MainWindow(QMainWindow):
         profile_col_center_layout.addSpacing(120)
         profile_col_center_layout.addWidget(profile_picture, alignment=Qt.AlignHCenter)
         profile_col_center_layout.addSpacing(140)
-        profile_col_center_layout.addWidget(name_text)
+        profile_col_center_layout.addWidget(self.name_text)
         profile_col_center_layout.addWidget(profile_row3_center_widget)
         profile_col_center_layout.addWidget(profile_row4_center_widget)
         profile_col_center_layout.addWidget(profile_row5_center_widget)
-        profile_col_center_layout.addWidget(activity_combo)
+        profile_col_center_layout.addWidget(self.activity_combo)
         profile_col_center_layout.addSpacing(140)
         
 
@@ -363,7 +394,7 @@ class MainWindow(QMainWindow):
 
         profile_col_right_layout.addStretch()
         profile_col_right_layout.addSpacing(20)
-        profile_col_right_layout.addWidget(save_btn)
+        profile_col_right_layout.addWidget(self.save_btn)
         profile_col_right_layout.addSpacing(140)
 
         profile_col_right_widget.setLayout(profile_col_right_layout)
@@ -378,24 +409,50 @@ class MainWindow(QMainWindow):
         profile_widget.setLayout(profile_layout)
 
         self.central_layout.addWidget(profile_widget, stretch=1)
-        
         self.central_widget.setLayout(self.central_layout)
 
-        #save_profile()
-        #Then remove the overlay
-            #pass
+    def save_profile(self):
+        self.name = self.name_text.text()
+        
+        day = self.day_text.text()
+        month = self.month_text.text()
+        year = self.year_text.text()
+        self.dob = f"{day}-{month}-{year}"
+
+        foot = self.foot_height_text.text()
+        inch = self.inch_height_text.text()
+        self.height = f"{foot}-{inch}"
+
+        weight_number = self.weight_text.text()
+        weight_unit = self.weight_combo.currentIndex()
+
+        match weight_unit:
+            case 0:
+                weight_number += "-KG"
+            case 1:
+                weight_number += "-LB"
+
+        self.weight = weight_number
+
+        self.activity = self.activity_combo.currentIndex()
+
+        self.profiles.add_profile(self.name, self.dob, self.height, self.weight, self.activity)
+
+        profile_update = {"name": self.name, "dob": self.profiles.profile[self.name].dob, "height": self.profiles.profile[self.name].height, "weight": self.profiles.profile[self.name].weight, "activity": self.profiles.profile[self.name].activity}
+
+        self.current_profiles.append(profile_update)
+
+        with open('./src/data.json', 'w') as f:
+            json.dump({"profiles": self.current_profiles}, f, indent=4)
+
 
     def tab_switcher(self):
         #TODO - Logic for switching widgets when a tab is pressed to call a new page
         pass
-
-    def save_profile(self):
-        #TODO - Logic for saving a profile, as this will need to be written to json
-        pass
     
     def delete_profile(self):
         #TODO - Logic for deleting a profile
-        if not profiles.default:
+        if not self.profiles.profile.default:
             #Delete if not the default profile
             pass
         else:
@@ -404,8 +461,6 @@ class MainWindow(QMainWindow):
                 pass
             else:
                 #Delete profile
-                profiles.exists == False
-                initial_login()
                 pass
     
     def create_consumable(self):
