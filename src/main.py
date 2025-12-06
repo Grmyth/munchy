@@ -1,6 +1,7 @@
 import sys
 import json
 import datetime
+import math
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QComboBox, QPushButton
 from PyQt5.QtGui import QFont
@@ -37,7 +38,7 @@ class MainWindow(QMainWindow):
 
         #Creating the profiles instance from the Profiles class
             #This is one instance that will hold all of the user profiles
-        self.profiles = Profiles()
+        self.local_profiles = Profiles()
 
         #Initiation methods
         self.read_data_file()
@@ -68,10 +69,24 @@ class MainWindow(QMainWindow):
     def mouseReleaseEvent(self, event):
         self.dragging = False
 
+    #Reading the data.json file on load
     def read_data_file(self):
         with open('./src/data.json', 'r') as json_file:
-            data = json.load(json_file)
-            self.current_profiles = data['profiles']
+            self.data = json.load(json_file)
+            self.json_profiles = self.data['profiles']
+
+        #Creating a local Profiles instance with a .profile for all stored profiles
+        if self.json_profiles:
+            for profile in self.json_profiles:
+                for profile_name, profile_values in profile.items():
+                    self.local_profiles.add_profile(
+                        profile_name, 
+                        profile_values['dob'], 
+                        profile_values['height'], 
+                        profile_values['weight'], 
+                        str(profile_values['activity'])
+                        )
+
             #self.consumables = data['consumables']
             #self.recipes = data['recipes']
 
@@ -158,11 +173,15 @@ class MainWindow(QMainWindow):
         #Adding the titlebar as a widget of the central widget layout
         self.central_layout.addWidget(titlebar_widget, 0)
 
-        if not self.profiles.profile:
-            self.initial_login()
+        self.initial_login()
+
+        #if not self.local_profiles:
+            #self.initial_login()
 
     def initial_login(self):
         #TODO - Logic called by default when there is no saved profiles
+
+        self.can_save_profile = False
 
         #Profile widget elements
 
@@ -180,6 +199,7 @@ class MainWindow(QMainWindow):
         self.name_text.setAlignment(Qt.AlignCenter)
         self.name_text.setFont(QFont("Times New Roman", 20))
         self.name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.name_text.textEdited.connect(lambda: self.is_empty(self.name_text))
 
         #Center column - Row 3 - D.O.B
             
@@ -193,6 +213,7 @@ class MainWindow(QMainWindow):
         self.day_text.setAlignment(Qt.AlignCenter)
         self.day_text.setFont(QFont("Times New Roman", 20))
         self.day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.day_text.textEdited.connect(lambda: self.is_empty(self.day_text))
 
         # -- element 2 --
         self.month_text = QLineEdit(self)
@@ -202,6 +223,7 @@ class MainWindow(QMainWindow):
         self.month_text.setAlignment(Qt.AlignCenter)
         self.month_text.setFont(QFont("Times New Roman", 20))
         self.month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.month_text.textEdited.connect(lambda: self.is_empty(self.month_text))
 
         # -- element 3 --
         self.year_text = QLineEdit(self)
@@ -211,6 +233,7 @@ class MainWindow(QMainWindow):
         self.year_text.setAlignment(Qt.AlignCenter)
         self.year_text.setFont(QFont("Times New Roman", 20))
         self.year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.year_text.textEdited.connect(lambda: self.is_empty(self.year_text))
 
         #Center column - Row 4 - Height
             
@@ -224,6 +247,7 @@ class MainWindow(QMainWindow):
         self.foot_height_text.setAlignment(Qt.AlignCenter)
         self.foot_height_text.setFont(QFont("Times New Roman", 20))
         self.foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.foot_height_text.textEdited.connect(lambda: self.is_empty(self.foot_height_text))
 
         # -- element 2 --
         self.inch_height_text = QLineEdit(self)
@@ -233,6 +257,7 @@ class MainWindow(QMainWindow):
         self.inch_height_text.setAlignment(Qt.AlignCenter)
         self.inch_height_text.setFont(QFont("Times New Roman", 20))
         self.inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.inch_height_text.textEdited.connect(lambda: self.is_empty(self.inch_height_text))
 
         #Center column - Row 5
             
@@ -246,6 +271,7 @@ class MainWindow(QMainWindow):
         self.weight_text.setAlignment(Qt.AlignCenter)
         self.weight_text.setFont(QFont("Times New Roman", 20))
         self.weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.weight_text.textEdited.connect(lambda: self.is_empty(self.weight_text))
 
         # -- element 2 --
         self.weight_combo = QComboBox(self)
@@ -316,7 +342,7 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
-
+        
         self.save_btn.clicked.connect(self.save_profile) 
 
         #Create profile widget containing form for first profile
@@ -411,19 +437,108 @@ class MainWindow(QMainWindow):
         self.central_layout.addWidget(profile_widget, stretch=1)
         self.central_widget.setLayout(self.central_layout)
 
+    #Check if the current text field is empty and show error color on border - only after typing and removing input
+    def is_empty(self, text):
+        if not text.text():
+            self.can_save_profile = False
+            text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+        else:
+            self.can_save_profile = True
+            text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #000000; border-radius: 14px")
+
     def save_profile(self):
-        self.name = self.name_text.text()
-        
-        day = self.day_text.text()
-        month = self.month_text.text()
-        year = self.year_text.text()
-        self.dob = f"{day}-{month}-{year}"
 
-        foot = self.foot_height_text.text()
-        inch = self.inch_height_text.text()
-        self.height = f"{foot}-{inch}"
+        #Check to see if the profile name exists
+        for profile_name in self.local_profiles.profile:
+            if profile_name == self.name_text.text():
+                self.can_save_profile = False
+                self.name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            else:
+                name = self.name_text.text()
 
-        weight_number = self.weight_text.text()
+        #Confirm that the day/month/year is valid
+        day = ""
+        month = ""
+        year = ""
+
+        try:
+            day = int(self.day_text.text())
+
+            if day < 1 or day > 31:
+                self.can_save_profile = False
+                self.day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        try:
+            month = int(self.month_text.text())
+
+            if month < 1 or month > 12:
+                self.can_save_profile = False
+                self.month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        try:
+            year = int(self.year_text.text())
+
+            if year < 1900 or year > 2025:
+                self.can_save_profile = False
+                self.year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        dob = f"{str(day)}-{str(month)}-{str(year)}"
+
+        #Confirm that the height Ft/In is valid
+        ft = ""
+        inch = ""
+
+        try:
+            ft = int(self.foot_height_text.text())
+
+            if ft < 4 or ft > 8:
+                self.can_save_profile = False
+                self.foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        try:
+            inch = int(self.inch_height_text.text())
+
+            if inch < 1 or inch > 9:
+                self.can_save_profile = False
+                self.inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+        height = f"{str(ft)}-{str(inch)}"
+
+        #Confirm that the height weight is valid
+        weight_number = ""
+        try:
+            weight_number = int(self.weight_text.text())
+
+            if weight_number < 1 or weight_number > 2000:
+                self.can_save_profile = False
+                self.weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
+            weight_number = str(weight_number)
+
+        except ValueError:
+            self.can_save_profile = False
+            self.weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+
         weight_unit = self.weight_combo.currentIndex()
 
         match weight_unit:
@@ -432,31 +547,46 @@ class MainWindow(QMainWindow):
             case 1:
                 weight_number += "-LB"
 
-        self.weight = weight_number
+        weight = weight_number
 
-        self.activity = self.activity_combo.currentIndex()
+        #Activity - does not require validation checking
+        activity = self.activity_combo.currentIndex()
 
-        self.profiles.add_profile(self.name, self.dob, self.height, self.weight, self.activity)
+        if self.can_save_profile == True:
+            self.local_profiles.add_profile(
+                name, 
+                dob, 
+                height, 
+                weight, 
+                activity
+                )
 
-        profile_update = {"name": self.name, "dob": self.profiles.profile[self.name].dob, "height": self.profiles.profile[self.name].height, "weight": self.profiles.profile[self.name].weight, "activity": self.profiles.profile[self.name].activity}
+            profile_update = {
+                name: {
+                    "dob": self.local_profiles.profile[name].dob, 
+                    "height": self.local_profiles.profile[name].height, 
+                    "weight": self.local_profiles.profile[name].weight, 
+                    "activity": self.local_profiles.profile[name].activity
+                }
+            }
 
-        self.current_profiles.append(profile_update)
+            self.json_profiles.append(profile_update)
 
-        with open('./src/data.json', 'w') as f:
-            json.dump({"profiles": self.current_profiles}, f, indent=4)
+            with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
 
 
     def tab_switcher(self):
         #TODO - Logic for switching widgets when a tab is pressed to call a new page
         pass
     
-    def delete_profile(self):
+    def delete_profile(self, name):
         #TODO - Logic for deleting a profile
-        if not self.profiles.profile.default:
+        if not self.local_profiles['name'].default:
             #Delete if not the default profile
             pass
         else:
-            if profiles.additional:
+            if self.local_profiles['name'].additional:
                 #Choose a new default profile
                 pass
             else:
