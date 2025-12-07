@@ -6,21 +6,6 @@ from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QComboBox, QPushButton
 from PyQt5.QtGui import QFont
 
-class Profile:
-    def __init__(self, dob, height, weight, activity):
-        self.dob = dob
-        self.height = height
-        self.weight = weight
-        self.activity = activity
-
-class Profiles:
-    def __init__(self):
-        self.profile = {}
-
-    def add_profile(self, name, dob, height, weight, activity):
-        self.profile[name] = Profile(dob, height, weight, activity)
-    
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -43,31 +28,36 @@ class MainWindow(QMainWindow):
         #Initiation methods
         self.read_data_file()
         self.initUI()
+        if not self.local_profiles.profile:
+            self.new_profile()
 
-    #Check the mouse pos when user clicks and determine if area is titlebar
-    def mousePressEvent(self, event):
-        x = event.pos().x()
-        y = event.pos().y()
+            #----- Mouse controls -----#
 
-        width = self.width()
+        #Check the mouse pos when user clicks and determine if area is titlebar
+        def mousePressEvent(self, event):
+            
+            x = event.pos().x()
+            y = event.pos().y()
 
-        if (0 < x < width - 96 and 0 < y < 44):
-            self.dragging = True
-            self.oldPos = event.globalPos()
-        else:
+            width = self.width()
+
+            if (0 < x < width - 96 and 0 < y < 44):
+                self.dragging = True
+                self.oldPos = event.globalPos()
+            else:
+                self.dragging = False
+
+        #If mouse clicked on titlebar then window is able to be moved with mouse
+        def mouseMoveEvent(self, event):
+
+            if self.dragging:
+                delta = QPoint(event.globalPos() - self.oldPos)
+                self.move(self.x() + delta.x(), self.y() + delta.y())
+                self.oldPos = event.globalPos()
+        
+        #resets dragging bool to false to prevent moving window from other areas
+        def mouseReleaseEvent(self, event):
             self.dragging = False
-
-    #If mouse clicked on titlebar then window is able to be moved with mouse
-    def mouseMoveEvent(self, event):
-
-        if self.dragging:
-            delta = QPoint(event.globalPos() - self.oldPos)
-            self.move(self.x() + delta.x(), self.y() + delta.y())
-            self.oldPos = event.globalPos()
-    
-    #resets dragging bool to false to prevent moving window from other areas
-    def mouseReleaseEvent(self, event):
-        self.dragging = False
 
     #Reading the data.json file on load
     def read_data_file(self):
@@ -93,17 +83,17 @@ class MainWindow(QMainWindow):
     def initUI(self):
 
         #title bar elements
-        self.title_label = QLabel("", self)
-        self.title_label.setFixedWidth(280)
-        self.title_label.setFixedHeight(44)
-        self.title_label.setStyleSheet("image: url(./assets/titlebar/title.png)")
+        title_label = QLabel("", self)
+        title_label.setFixedWidth(280)
+        title_label.setFixedHeight(44)
+        title_label.setStyleSheet("image: url(./assets/titlebar/title.png)")
 
-        self.min_button = QPushButton("", self)
-        self.min_button.setFixedWidth(48)
-        self.min_button.setFixedHeight(44)
-        self.min_button.setFocusPolicy(Qt.NoFocus)
-        self.min_button.clicked.connect(self.showMinimized)
-        self.min_button.setStyleSheet("""
+        min_button = QPushButton("", self)
+        min_button.setFixedWidth(48)
+        min_button.setFixedHeight(44)
+        min_button.setFocusPolicy(Qt.NoFocus)
+        min_button.clicked.connect(self.showMinimized)
+        min_button.setStyleSheet("""
                                         QPushButton {
                                             image: url(assets/titlebar/min.png);
                                             background-color: transparent;
@@ -120,12 +110,12 @@ class MainWindow(QMainWindow):
                                             border: none;
                                         }""")
 
-        self.exit_button = QPushButton("", self)
-        self.exit_button.setFixedWidth(48)
-        self.exit_button.setFixedHeight(44)
-        self.exit_button.setFocusPolicy(Qt.NoFocus)
-        self.exit_button.clicked.connect(QApplication.instance().quit)
-        self.exit_button.setStyleSheet("""
+        exit_button = QPushButton("", self)
+        exit_button.setFixedWidth(48)
+        exit_button.setFixedHeight(44)
+        exit_button.setFocusPolicy(Qt.NoFocus)
+        exit_button.clicked.connect(QApplication.instance().quit)
+        exit_button.setStyleSheet("""
                                         QPushButton {
                                             image: url(./assets/titlebar/exit.png);
                                             background-color: transparent;
@@ -161,36 +151,91 @@ class MainWindow(QMainWindow):
 
         #Sorting titlebar elements(sub-widgets of the titlebar widget)
         titlebar_layout.addStretch()
-        titlebar_layout.addWidget(self.title_label)
+        titlebar_layout.addWidget(title_label)
         titlebar_layout.addSpacing(48)
         titlebar_layout.addStretch()
-        titlebar_layout.addWidget(self.min_button)
-        titlebar_layout.addWidget(self.exit_button)
+        titlebar_layout.addWidget(min_button)
+        titlebar_layout.addWidget(exit_button)
 
         #Applying the titlebar layout to the titlebar widget
         titlebar_widget.setLayout(titlebar_layout)
 
         #Adding the titlebar as a widget of the central widget layout
-        self.central_layout.addWidget(titlebar_widget, 0)
+        self.central_layout.addWidget(titlebar_widget)
 
-        self.initial_login()
 
-        #if not self.local_profiles:
-            #self.initial_login()
 
-    def initial_login(self):
-        #TODO - Logic called by default when there is no saved profiles
+      
+        #Tab elements
+        self.profiles_tab = QPushButton("Profiles", self)
+        self.profiles_tab.setFixedHeight(106)
+        self.profiles_tab.setFixedWidth(230)
+        self.profiles_tab.setFont(QFont("Times New Roman", 20))
+        self.profiles_tab.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #24201f; border: 0px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #161515;
+                                }
+                            """)
+
+        self.consumables_tab = QPushButton("Consumables", self)
+        self.consumables_tab.setFixedHeight(106)
+        self.consumables_tab.setFixedWidth(230)
+
+        self.recipes_tab = QPushButton("Recipes", self)
+        self.recipes_tab.setFixedHeight(106)
+        self.recipes_tab.setFixedWidth(230)
+
+        self.pantry_tab = QPushButton("Pantry", self)
+        self.pantry_tab.setFixedHeight(106)
+        self.pantry_tab.setFixedWidth(230)
+
+        self.planner_tab = QPushButton("Planner", self)
+        self.planner_tab.setFixedHeight(106)
+        self.planner_tab.setFixedWidth(230)
+
+        self.shopping_tab = QPushButton("Shopping", self)
+        self.shopping_tab.setFixedHeight(106)
+        self.shopping_tab.setFixedWidth(230)
+
+        #Tabs Widget - Also setting the layout of the tab elements within the widget
+        self.tabs_widget = QWidget()
+        self.tabs_widget.setFixedHeight(112)
+        self.tabs_widget.setStyleSheet("background-color: #161515")
+
+        self.tabs_layout = QHBoxLayout()
+        self.tabs_layout.setContentsMargins(0, 0, 0, 0)
+        self.tabs_layout.setSpacing(3)
+
+        #Sorting tab elements(sub-widgets of the tabs widget)
+        self.tabs_layout.addStretch()
+        self.tabs_layout.addWidget(self.profiles_tab, alignment=Qt.AlignVCenter)
+        self.tabs_layout.addWidget(self.consumables_tab, alignment=Qt.AlignVCenter)
+        self.tabs_layout.addWidget(self.recipes_tab, alignment=Qt.AlignVCenter)
+        self.tabs_layout.addWidget(self.pantry_tab, alignment=Qt.AlignVCenter)
+        self.tabs_layout.addWidget(self.planner_tab, alignment=Qt.AlignVCenter)
+        self.tabs_layout.addWidget(self.shopping_tab, alignment=Qt.AlignVCenter)
+        self.tabs_layout.addStretch()
+
+        self.tabs_widget.setLayout(self.tabs_layout)
+        
+        self.central_layout.addWidget(self.tabs_widget)
+
+    def new_profile(self):
 
         self.can_save_profile = False
+        self.tabs_widget.hide()
 
-        #Profile widget elements
 
         #Center column - Row 1 - Profile picture
-        profile_picture = QLabel(self)
-        profile_picture.setFixedHeight(260)
-        profile_picture.setFixedWidth(260)
-        profile_picture.setFocusPolicy(Qt.StrongFocus)
-        profile_picture.setStyleSheet("background-color: #171514; border: 2px solid black; border-radius: 20px")
+        self.profile_picture = QLabel(self)
+        self.profile_picture.setFixedHeight(260)
+        self.profile_picture.setFixedWidth(260)
+        self.profile_picture.setFocusPolicy(Qt.StrongFocus)
+        self.profile_picture.setStyleSheet("background-color: #171514; border: 2px solid black; border-radius: 20px")
 
         #Center column - Row 2 - Name
         self.name_text = QLineEdit(self)
@@ -322,11 +367,11 @@ class MainWindow(QMainWindow):
         self.activity_combo.setCurrentIndex(2)
 
         #Right column
-        self.save_btn = QPushButton("Save", self)
-        self.save_btn.setFixedHeight(60)
-        self.save_btn.setFixedWidth(280)
-        self.save_btn.setFont(QFont("Times New Roman", 20))
-        self.save_btn.setStyleSheet("""
+        save_btn = QPushButton("Save", self)
+        save_btn.setFixedHeight(60)
+        save_btn.setFixedWidth(280)
+        save_btn.setFont(QFont("Times New Roman", 20))
+        save_btn.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; margin-left: 130px; text-align: center;
@@ -343,10 +388,10 @@ class MainWindow(QMainWindow):
                                 }
                             """)
         
-        self.save_btn.clicked.connect(self.save_profile) 
+        save_btn.clicked.connect(self.save_profile)
 
         #Create profile widget containing form for first profile
-        profile_widget = QWidget()
+        self.new_profile_widget = QWidget()
 
         profile_col_left_widget = QWidget()
         profile_col_left_widget.setStyleSheet("background-color: #24201f")
@@ -399,7 +444,7 @@ class MainWindow(QMainWindow):
 
         profile_col_center_layout.addStretch()
         profile_col_center_layout.addSpacing(120)
-        profile_col_center_layout.addWidget(profile_picture, alignment=Qt.AlignHCenter)
+        profile_col_center_layout.addWidget(self.profile_picture, alignment=Qt.AlignHCenter)
         profile_col_center_layout.addSpacing(140)
         profile_col_center_layout.addWidget(self.name_text)
         profile_col_center_layout.addWidget(profile_row3_center_widget)
@@ -420,22 +465,23 @@ class MainWindow(QMainWindow):
 
         profile_col_right_layout.addStretch()
         profile_col_right_layout.addSpacing(20)
-        profile_col_right_layout.addWidget(self.save_btn)
+        profile_col_right_layout.addWidget(save_btn)
         profile_col_right_layout.addSpacing(140)
 
         profile_col_right_widget.setLayout(profile_col_right_layout)
 
-        profile_layout = QHBoxLayout()
-        profile_layout.setContentsMargins(0, 0, 0, 0)
-        profile_layout.setSpacing(0)
+        new_profile_layout = QHBoxLayout()
+        new_profile_layout.setContentsMargins(0, 0, 0, 0)
+        new_profile_layout.setSpacing(0)
 
-        profile_layout.addWidget(profile_col_left_widget)
-        profile_layout.addWidget(profile_col_center_widget, alignment=Qt.AlignHCenter)
-        profile_layout.addWidget(profile_col_right_widget)
-        profile_widget.setLayout(profile_layout)
+        new_profile_layout.addWidget(profile_col_left_widget)
+        new_profile_layout.addWidget(profile_col_center_widget)
+        new_profile_layout.addWidget(profile_col_right_widget)
+        self.new_profile_widget.setLayout(new_profile_layout)
 
-        self.central_layout.addWidget(profile_widget, stretch=1)
+        self.central_layout.insertWidget(1, self.new_profile_widget)
         self.central_widget.setLayout(self.central_layout)
+
 
     #Check if the current text field is empty and show error color on border - only after typing and removing input
     def is_empty(self, text):
@@ -449,18 +495,14 @@ class MainWindow(QMainWindow):
     def save_profile(self):
 
         #Check to see if the profile name exists
+        name = self.name_text.text()
         for profile_name in self.local_profiles.profile:
             if profile_name == self.name_text.text():
                 self.can_save_profile = False
                 self.name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
-            else:
-                name = self.name_text.text()
-
+                
         #Confirm that the day/month/year is valid
-        day = ""
-        month = ""
-        year = ""
-
+        
         try:
             day = int(self.day_text.text())
 
@@ -494,7 +536,10 @@ class MainWindow(QMainWindow):
             self.can_save_profile = False
             self.year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
 
-        dob = f"{str(day)}-{str(month)}-{str(year)}"
+        dob = []
+        dob.append(day)
+        dob.append(month)
+        dob.append(year)
 
         #Confirm that the height Ft/In is valid
         ft = ""
@@ -503,7 +548,7 @@ class MainWindow(QMainWindow):
         try:
             ft = int(self.foot_height_text.text())
 
-            if ft < 4 or ft > 8:
+            if ft < 0 or ft > 9:
                 self.can_save_profile = False
                 self.foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
 
@@ -514,7 +559,7 @@ class MainWindow(QMainWindow):
         try:
             inch = int(self.inch_height_text.text())
 
-            if inch < 1 or inch > 9:
+            if inch < 0 or inch > 11:
                 self.can_save_profile = False
                 self.inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
 
@@ -522,32 +567,28 @@ class MainWindow(QMainWindow):
             self.can_save_profile = False
             self.inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
 
-        height = f"{str(ft)}-{str(inch)}"
+        height = []
+        height.append(ft)
+        height.append(inch)
 
         #Confirm that the height weight is valid
         weight_number = ""
         try:
-            weight_number = int(self.weight_text.text())
+            weight_number = float(self.weight_text.text())
 
             if weight_number < 1 or weight_number > 2000:
                 self.can_save_profile = False
                 self.weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
 
-            weight_number = str(weight_number)
+            weight_number = float(f"{weight_number:.1f}")
 
         except ValueError:
             self.can_save_profile = False
             self.weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
 
-        weight_unit = self.weight_combo.currentIndex()
-
-        match weight_unit:
-            case 0:
-                weight_number += "-KG"
-            case 1:
-                weight_number += "-LB"
-
-        weight = weight_number
+        weight = []
+        weight.append(weight_number)
+        weight.append(self.weight_combo.currentIndex())
 
         #Activity - does not require validation checking
         activity = self.activity_combo.currentIndex()
@@ -563,9 +604,19 @@ class MainWindow(QMainWindow):
 
             profile_update = {
                 name: {
-                    "dob": self.local_profiles.profile[name].dob, 
-                    "height": self.local_profiles.profile[name].height, 
-                    "weight": self.local_profiles.profile[name].weight, 
+                    "dob": {
+                        "day": self.local_profiles.profile[name].dob[0],
+                        "month": self.local_profiles.profile[name].dob[1],
+                        "year": self.local_profiles.profile[name].dob[2]
+                    }, 
+                    "height": {
+                        "ft": self.local_profiles.profile[name].height[0],
+                        "inch": self.local_profiles.profile[name].height[1]
+                    }, 
+                    "weight": {
+                        "unit": self.local_profiles.profile[name].weight[0],
+                        "kg/lb": self.local_profiles.profile[name].weight[1]
+                    }, 
                     "activity": self.local_profiles.profile[name].activity
                 }
             }
@@ -575,6 +626,11 @@ class MainWindow(QMainWindow):
             with open('./src/data.json', 'w') as f:
                 json.dump(self.data, f, indent=4)
 
+            self.central_layout.removeWidget(self.new_profile_widget)
+            self.new_profile_widget.setParent(None)
+            self.new_profile_widget.deleteLater()
+
+            self.tabs_widget.show()
 
     def tab_switcher(self):
         #TODO - Logic for switching widgets when a tab is pressed to call a new page
@@ -661,8 +717,20 @@ class MainWindow(QMainWindow):
         #TODO - Read a form filled in by user on click, then generate the shopping list
         pass
 
-    
 
+class Profile:
+    def __init__(self, dob, height, weight, activity):
+        self.dob = dob
+        self.height = height
+        self.weight = weight
+        self.activity = activity
+
+class Profiles:
+    def __init__(self):
+        self.profile = {}
+
+    def add_profile(self, name, dob, height, weight, activity):
+        self.profile[name] = Profile(dob, height, weight, activity)   
 
 def main():
     app = QApplication(sys.argv)
