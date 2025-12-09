@@ -1,5 +1,22 @@
 {
     "profiles": [
-        
+        {
+            "dfsdfsdf": {
+                "dob": {
+                    "day": 4,
+                    "month": 4,
+                    "year": 1908
+                },
+                "height": {
+                    "ft": 5,
+                    "inch": 5
+                },
+                "weight": {
+                    "unit": 23.0,
+                    "kg/lb": 0
+                },
+                "activity": 2
+            }
+        }
     ]
 }
