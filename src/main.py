@@ -918,11 +918,19 @@ class MainWindow(QMainWindow):
 
     def consumables(self):
 
-        new_consumable_button = QPushButton("+ Consumable", self)
-        new_consumable_button.setFixedHeight(80)
-        new_consumable_button.setFixedWidth(240)
-        new_consumable_button.setFont(QFont("Times New Roman", 20))
-        new_consumable_button.setStyleSheet("""
+        self.new_consumable_text = QLineEdit(self)
+        self.new_consumable_text.setPlaceholderText("Consumable")
+        self.new_consumable_text.setFixedHeight(60)
+        self.new_consumable_text.setFixedWidth(400)
+        self.new_consumable_text.setAlignment(Qt.AlignCenter)
+        self.new_consumable_text.setFont(QFont("Times New Roman", 20))
+        self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        add_consumable_button = QPushButton("Add", self)
+        add_consumable_button.setFixedHeight(60)
+        add_consumable_button.setFixedWidth(160)
+        add_consumable_button.setFont(QFont("Times New Roman", 20))
+        add_consumable_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
@@ -938,6 +946,8 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
+
+        add_consumable_button.clicked.connect(lambda: self.add_consumable(self.new_consumable_text.text()))
         
         consumables_scroll = QScrollArea()
         consumables_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -952,13 +962,16 @@ class MainWindow(QMainWindow):
         consumables_layout.setSpacing(0)
 
         consumables_row1_widget = QWidget()
+        consumables_row1_widget.setFixedHeight(80)
 
         consumables_row1_layout = QHBoxLayout()
         consumables_row1_layout.setContentsMargins(0, 0, 0, 0)
         consumables_row1_layout.setSpacing(0)
 
         consumables_row1_layout.addStretch()
-        consumables_row1_layout.addWidget(new_consumable_button)
+        consumables_row1_layout.addWidget(self.new_consumable_text)
+        consumables_row1_layout.addSpacing(40)
+        consumables_row1_layout.addWidget(add_consumable_button)
         consumables_row1_layout.addStretch()
 
         consumables_row1_widget.setLayout(consumables_row1_layout)
@@ -1027,6 +1040,33 @@ class MainWindow(QMainWindow):
 
 
 
+
+    def add_consumable(self, name):
+
+        if not name:
+            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_consumable_text.setText("")
+            self.new_consumable_text.setPlaceholderText("No consumable detected")
+            return
+
+        if name in self.local_consumables:
+            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_consumable_text.setText("")
+            self.new_consumable_text.setPlaceholderText("Consumable already added")
+            return
+
+        self.local_consumables[name] = {}
+
+        self.central_layout.removeWidget(self.consumables_widget)
+        self.consumables_widget.setParent(None)
+        self.consumables_widget.deleteLater()
+
+        self.consumables()
+        self.central_layout.insertWidget(1, self.consumables_widget)
+
+
+
+        pass
     def consumable_variants(self):
 
         consumable = "munchy" #This needs to be updated to the name of the current consumable
