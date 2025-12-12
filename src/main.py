@@ -58,11 +58,11 @@ class MainWindow(QMainWindow):
         with open('./src/data.json', 'r') as json_file:
             self.data = json.load(json_file)
             self.local_profiles = self.data['profiles']
+            self.local_consumables = self.data['consumables']
 
         #Creating a local Profiles instance with a .profile for all stored profiles
 
-            #self.consumables = data['consumables']
-            #self.recipes = data['recipes']
+           
 
     def initUI(self):
 
@@ -81,6 +81,7 @@ class MainWindow(QMainWindow):
         self.tabs()
         self.new_profile()
         self.profiles()
+        self.consumables()
 
         self.central_widget.setLayout(self.central_layout)
 
@@ -89,8 +90,8 @@ class MainWindow(QMainWindow):
             self.central_layout.insertWidget(1, self.new_profile_widget)
 
         else:
-            self.central_layout.insertWidget(1, self.profiles_widget)
-
+            #self.central_layout.insertWidget(1, self.profiles_widget)
+            self.central_layout.insertWidget(1, self.consumables_widget)
 
 
 
@@ -917,11 +918,11 @@ class MainWindow(QMainWindow):
 
     def consumables(self):
 
-        new_consumable = QPushButton("+ Consumable", self)
-        new_consumable.setFixedWidth(200)
-        new_consumable.setFixedWidth(400)
-        new_consumable.setFont(QFont("Times New Roman", 20))
-        new_consumable.setStyleSheet("""
+        new_consumable_button = QPushButton("+ Consumable", self)
+        new_consumable_button.setFixedHeight(80)
+        new_consumable_button.setFixedWidth(240)
+        new_consumable_button.setFont(QFont("Times New Roman", 20))
+        new_consumable_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
@@ -938,24 +939,176 @@ class MainWindow(QMainWindow):
                                 }
                             """)
         
+        consumables_scroll = QScrollArea()
+        consumables_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        consumables_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        self.consumables_widget = QWidget()
+        self.consumables_widget.setFixedHeight(944)
+        self.consumables_widget.setFixedWidth(1400)
+
+        consumables_layout = QVBoxLayout()
+        consumables_layout.setContentsMargins(0, 0, 0, 0)
+        consumables_layout.setSpacing(0)
+
+        consumables_row1_widget = QWidget()
+
+        consumables_row1_layout = QHBoxLayout()
+        consumables_row1_layout.setContentsMargins(0, 0, 0, 0)
+        consumables_row1_layout.setSpacing(0)
+
+        consumables_row1_layout.addStretch()
+        consumables_row1_layout.addWidget(new_consumable_button)
+        consumables_row1_layout.addStretch()
+
+        consumables_row1_widget.setLayout(consumables_row1_layout)
+
+        row1_row2_spacer = QWidget()
+        row1_row2_spacer.setStyleSheet("background-color: #171514")
+        row1_row2_spacer.setFixedHeight(2)
+        
+
+        consumables_row2_widget = QWidget()
+
+        consumables_row2_layout = QGridLayout()
+        consumables_row2_layout.setContentsMargins(60, 20, 60, 20)
+        consumables_row2_layout.setSpacing(40)
+        
+        
+
+        x = 0
+        y = 0
+
+        for key in self.local_consumables.keys():
+
+            button = key
+
+            button = QPushButton(key, self)
+            button.setFixedHeight(80)
+            button.setFixedWidth(400)
+            button.setFont(QFont("Times New Roman", 20))
+            button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)            
+
+            consumables_row2_layout.addWidget(button, x, y)
+
+            if y < 2:
+                y += 1
+            
+            else:
+                y = 0
+                x += 1
+
+        consumables_row2_widget.setLayout(consumables_row2_layout)
+
+        consumables_scroll.setWidget(consumables_row2_widget)
+
+        consumables_layout.addSpacing(40)
+        consumables_layout.addWidget(consumables_row1_widget)
+        consumables_layout.addSpacing(40)
+        consumables_layout.addWidget(row1_row2_spacer)
+        consumables_layout.addWidget(consumables_scroll)
+
+        self.consumables_widget.setLayout(consumables_layout)
+
+
+
+    def consumable_variants(self):
+
+        consumable = "munchy" #This needs to be updated to the name of the current consumable
+
+        consumable_button = QPushButton(consumable , self)
+        consumable_button.setFixedHeight(200)
+        consumable_button.setFixedWidth(400)
+        consumable_button.setFont(QFont("Times New Roman", 20))
+        consumable_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+
+        new_variant_button = QPushButton("+ Consumable", self)
+        new_variant_button.setFixedHeight(200)
+        new_variant_button.setFixedWidth(400)
+        new_variant_button.setFont(QFont("Times New Roman", 20))
+        new_variant_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+
         scroll_area = QScrollArea()
 
-        consumables_widget = QWidget()
-        consumables_widget.setFixedHeight(944)
-        consumables_widget.setFixedWidth(1400)
+        self.variants_widget = QWidget()
+        self.variants_widget.setFixedHeight(944)
+        self.variants_widget.setFixedWidth(1400)
 
-        consumables_layout = QGridLayout()
-        consumables_layout.setContentsMargins(20, 20, 20, 20)
-        consumables_layout.setSpacing(80)
+        variants_layout = QVBoxLayout()
+        variants_layout.setContentsMargins(20, 20, 20, 20)
+        variants_layout.setSpacing(80)
 
-        consumables_layout.addWidget(new_consumable, 0, 0)
+        variants_row1_widget = QWidget()
+        variants_row1_widget.setFixedHeight(300)
 
-        scroll_area.setWidget(consumables_layout)
+        variants_row1_layout = QVBoxLayout()
+        variants_row1_layout.setContentsMargins(0, 0, 0, 0)
+        variants_row1_layout.setSpacing(0)
         
-        pass
+        variants_row1_layout.addStretch()
+        variants_row1_layout.addWidget(consumable_button)
+        variants_row1_layout.addStretch()
+
+        variants_row1_widget.setLayout(variants_row1_layout)
+
+        variants_row2_widget = QWidget()
+
+        scroll_area.setWidget(variants_row2_widget)
+
+        variants_row2_layout = QGridLayout()
+        variants_row2_layout.setContentsMargins(0, 0, 0, 0)
+        variants_row2_layout.setSpacing(80)
 
 
 
+
+
+        variants_layout.addWidget(variants_row1_widget)
 
     def recipes(self):
         pass

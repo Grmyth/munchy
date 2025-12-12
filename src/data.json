@@ -18,5 +18,33 @@
                 "activity": 2
             }
         }
-    ]
+    ],
+    "consumables": {
+        "Test": "A",
+        "Test2": "B",
+        "Test3": "C",
+        "Test4": "D",
+        "Test5": "A",
+        "Test6": "B",
+        "Test7": "C",
+        "Test8": "D",
+        "Test11": "C",
+        "Test12": "D",
+        "Test13": "A",
+        "Test14": "B",
+        "Test15": "C",
+        "Test21": "D",
+        "est": "A",
+        "est3": "C",
+        "Tst4": "D",
+        "Tst5": "A",
+        "Tet6": "B",
+        "Tet7": "C",
+        "Tes8": "D",
+        "Tes11": "C",
+        "Tes12": "D",
+        "Tet13": "A",
+        "Tes14": "B",
+        "Tet15": "C"
+    }
 }
