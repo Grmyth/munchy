@@ -5,6 +5,7 @@ import math
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QHBoxLayout, QVBoxLayout, QWidget, QScrollArea, QLabel, QLineEdit, QComboBox, QPushButton
 from PyQt5.QtGui import QFont
+from functools import partial
 
 
 class MainWindow(QMainWindow):
@@ -79,19 +80,15 @@ class MainWindow(QMainWindow):
 
         self.titlebar()
         self.tabs()
-        self.new_profile()
-        self.profiles()
-        self.consumables()
-
+        
         self.central_widget.setLayout(self.central_layout)
 
         if not self.local_profiles:
             self.tabs_widget.hide()
-            self.central_layout.insertWidget(1, self.new_profile_widget)
+            self.new_profile()
 
         else:
-            #self.central_layout.insertWidget(1, self.profiles_widget)
-            self.central_layout.insertWidget(1, self.consumables_widget)
+            self.profiles()
 
 
 
@@ -188,6 +185,7 @@ class MainWindow(QMainWindow):
                                     background-color: #171514;
                                 }
                             """)
+        self.profiles_tab.clicked.connect(lambda: self.tab_switcher("Profiles"))
 
         self.consumables_tab = QPushButton("Consumables", self)
         self.consumables_tab.setFixedHeight(106)
@@ -202,6 +200,7 @@ class MainWindow(QMainWindow):
                                     background-color: #171514;
                                 }
                             """)
+        self.consumables_tab.clicked.connect(lambda: self.tab_switcher("Consumables"))
 
         self.recipes_tab = QPushButton("Recipes", self)
         self.recipes_tab.setFixedHeight(106)
@@ -402,7 +401,6 @@ class MainWindow(QMainWindow):
         self.new_activity_combo = QComboBox(self)
         self.new_activity_combo.setFixedHeight(60)
         self.new_activity_combo.setFixedWidth(600)
-        self.new_activity_combo.setPlaceholderText("Activity")
         self.new_activity_combo.setFont(QFont("Times New Roman", 20))
         self.new_activity_combo.setStyleSheet("""
                                 QComboBox {
@@ -539,6 +537,10 @@ class MainWindow(QMainWindow):
 
         self.new_profile_widget.setLayout(new_profile_layout)
 
+        self.central_layout.insertWidget(1, self.new_profile_widget)
+
+        self.current_widget = "New Profile"
+
 
 
 
@@ -546,9 +548,9 @@ class MainWindow(QMainWindow):
 
         #Check to see if the profile name exists
         name = self.new_name_text.text()
-        for profile_name in self.local_profiles:
-            for key in profile_name.keys():
-                if key == self.new_name_text.text():
+        for profiles in self.local_profiles:
+            for value in profiles.values():
+                if value == self.new_name_text.text():
                     self.can_save_profile = False
                     self.new_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
                     self.new_name_text.setText("")
@@ -658,22 +660,21 @@ class MainWindow(QMainWindow):
         if self.can_save_profile == True:
 
             profile_update = {
-                name: {
-                    "dob": {
-                        "day": day,
-                        "month": month,
-                        "year": year
-                    }, 
-                    "height": {
-                        "ft": ft,
-                        "inch": inch
-                    }, 
-                    "weight": {
-                        "unit": weight_number,
-                        "kg/lb": measurement
-                    }, 
-                    "activity": activity
-                }
+                "name": name,
+                "dob": {
+                    "day": day,
+                    "month": month,
+                    "year": year
+                }, 
+                "height": {
+                    "ft": ft,
+                    "inch": inch
+                }, 
+                "weight": {
+                    "unit": weight_number,
+                    "kg/lb": measurement
+                }, 
+                "activity": activity
             }
 
             self.local_profiles.append(profile_update)
@@ -681,12 +682,9 @@ class MainWindow(QMainWindow):
             with open('./src/data.json', 'w') as f:
                 json.dump(self.data, f, indent=4)
 
-            self.central_layout.removeWidget(self.new_profile_widget)
-            self.new_profile_widget.setParent(None)
-
             self.tabs_widget.show()
 
-            self.central_layout.insertWidget(1, self.profiles_widget)
+            self.tab_switcher("Profiles")
 
 
 
@@ -742,42 +740,74 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
+        self.add_profile_button.clicked.connect(lambda: self.tab_switcher("New Profile"))
         
-        
-        self.name_label = QLabel("munchy", self)
+        name = f"Name:    {self.local_profiles[0]['name']}"
+        self.name_label = QLabel(name, self)
         self.name_label.setFixedHeight(88)
         self.name_label.setFixedWidth(856)
         self.name_label.setAlignment(Qt.AlignCenter)
         self.name_label.setFont(QFont("Times New Roman", 20))
         self.name_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
-        self.age_label = QLabel("munchy", self)
+        age = f"Date of Birth:    {self.local_profiles[0]['dob']['day']} - {self.local_profiles[0]['dob']['month']} - {self.local_profiles[0]['dob']['year']}"
+        self.age_label = QLabel(age, self)
         self.age_label.setFixedHeight(88)
         self.age_label.setFixedWidth(856)
         self.age_label.setAlignment(Qt.AlignCenter)
         self.age_label.setFont(QFont("Times New Roman", 20))
         self.age_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
-        self.height_label = QLabel("munchy", self)
+        height = f'Height:    {self.local_profiles[0]['height']['ft']} ft {self.local_profiles[0]['height']['inch']} "'
+        self.height_label = QLabel(height, self)
         self.height_label.setFixedHeight(88)
         self.height_label.setFixedWidth(856)
         self.height_label.setAlignment(Qt.AlignCenter)
         self.height_label.setFont(QFont("Times New Roman", 20))
         self.height_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
-        self.weight_label = QLabel("munchy", self)
+        weight = ""
+        match self.local_profiles[0]['weight']['kg/lb']:
+            case 0:
+                weight = f"Weight:    {self.local_profiles[0]['weight']['unit']} kg's"
+            case 1:
+                weight = f"Weight:    {self.local_profiles[0]['weight']['unit']} lb's"
+        
+        self.weight_label = QLabel(weight, self)
         self.weight_label.setFixedHeight(88)
         self.weight_label.setFixedWidth(856)
         self.weight_label.setAlignment(Qt.AlignCenter)
         self.weight_label.setFont(QFont("Times New Roman", 20))
         self.weight_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
-        self.activity_label = QLabel("munchy", self)
+        activity = ""
+        match self.local_profiles[0]['activity']:
+            case 0:
+                activity = "Activity:    Sedentary - little or no exercise"
+            case 1:
+                activity = "Activity:    Light - exercise 1-3 times/week"
+            case 2:
+                activity = "Activity:    Moderate - exercise 4-5 times/week"
+            case 3:
+                activity = "Activity:    Active - intense exercise 3-4 times/week"
+            case 4:
+                activity = "Activity:    Very Active - intense exercise 6-7 times/week"
+            case 5:
+                activity = "Activity:    Extra Active - very intense daily exercise"
+
+        self.activity_label = QLabel(activity, self)
         self.activity_label.setFixedHeight(88)
         self.activity_label.setFixedWidth(856)
         self.activity_label.setAlignment(Qt.AlignCenter)
         self.activity_label.setFont(QFont("Times New Roman", 20))
         self.activity_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Men: (10 x weight in kg) + (6.25 x height in cm) - (5 x age in years) + 5
+        #Women: (10 x weight in kg) + (6.25 x height in cm) - (5 x age in years) - 161 
+
+        #kg's = lb's / 2.205
+
+        # ((feet * 6) + inches) * 2.54 = cm's
 
         self.gain_label = QLabel("munchy", self)
         self.gain_label.setFixedHeight(90)
@@ -913,6 +943,10 @@ class MainWindow(QMainWindow):
 
         self.profiles_widget.setLayout(profiles_layout)
 
+        self.central_layout.insertWidget(1, self.profiles_widget)
+
+        self.current_widget = "Profiles"
+
 
 
 
@@ -962,15 +996,14 @@ class MainWindow(QMainWindow):
         consumables_layout.setSpacing(0)
 
         consumables_row1_widget = QWidget()
-        consumables_row1_widget.setFixedHeight(80)
+        consumables_row1_widget.setFixedHeight(60)
 
         consumables_row1_layout = QHBoxLayout()
         consumables_row1_layout.setContentsMargins(0, 0, 0, 0)
-        consumables_row1_layout.setSpacing(0)
+        consumables_row1_layout.setSpacing(40)
 
         consumables_row1_layout.addStretch()
         consumables_row1_layout.addWidget(self.new_consumable_text)
-        consumables_row1_layout.addSpacing(40)
         consumables_row1_layout.addWidget(add_consumable_button)
         consumables_row1_layout.addStretch()
 
@@ -995,7 +1028,6 @@ class MainWindow(QMainWindow):
         for key in self.local_consumables.keys():
 
             button = key
-
             button = QPushButton(key, self)
             button.setFixedHeight(80)
             button.setFixedWidth(400)
@@ -1015,7 +1047,9 @@ class MainWindow(QMainWindow):
                                 QPushButton:focus {
                                     border: 2px solid black; outline: none; 
                                 }
-                            """)            
+                            """)           
+
+            button.clicked.connect(partial(self.consumable_variants, key)) 
 
             consumables_row2_layout.addWidget(button, x, y)
 
@@ -1038,6 +1072,10 @@ class MainWindow(QMainWindow):
 
         self.consumables_widget.setLayout(consumables_layout)
 
+        self.central_layout.insertWidget(1, self.consumables_widget)
+
+        self.current_widget = "Consumables"
+
 
 
 
@@ -1057,25 +1095,22 @@ class MainWindow(QMainWindow):
 
         self.local_consumables[name] = {}
 
-        self.central_layout.removeWidget(self.consumables_widget)
-        self.consumables_widget.setParent(None)
-        self.consumables_widget.deleteLater()
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
 
-        self.consumables()
-        self.central_layout.insertWidget(1, self.consumables_widget)
+        self.tab_switcher("Consumables")
 
 
 
-        pass
-    def consumable_variants(self):
 
-        consumable = "munchy" #This needs to be updated to the name of the current consumable
-
-        consumable_button = QPushButton(consumable , self)
-        consumable_button.setFixedHeight(200)
-        consumable_button.setFixedWidth(400)
-        consumable_button.setFont(QFont("Times New Roman", 20))
-        consumable_button.setStyleSheet("""
+    def consumable_variants(self, consumable):
+        
+        #Row 1 - element 1
+        self.consumable_button = QPushButton(consumable , self)
+        self.consumable_button.setFixedHeight(60)
+        self.consumable_button.setFixedWidth(400)
+        self.consumable_button.setFont(QFont("Times New Roman", 20)) 
+        self.consumable_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
@@ -1092,11 +1127,91 @@ class MainWindow(QMainWindow):
                                 }
                             """)
 
-        new_variant_button = QPushButton("+ Consumable", self)
-        new_variant_button.setFixedHeight(200)
-        new_variant_button.setFixedWidth(400)
-        new_variant_button.setFont(QFont("Times New Roman", 20))
-        new_variant_button.setStyleSheet("""
+        #Row 1 - element 2
+        self.consumable_edit_button = QPushButton("Edit" , self)
+        self.consumable_edit_button.setFixedHeight(60)
+        self.consumable_edit_button.setFixedWidth(160)
+        self.consumable_edit_button.setFont(QFont("Times New Roman", 20)) 
+        self.consumable_edit_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.consumable_edit_button.clicked.connect(self.consumable_edit)    
+
+        #Row 1 - element 1 - edit mode
+        self.delete_consumable_button = QPushButton("Delete" , self)
+        self.delete_consumable_button.setFixedHeight(60)
+        self.delete_consumable_button.setFixedWidth(160)
+        self.delete_consumable_button.setFont(QFont("Times New Roman", 20)) 
+        self.delete_consumable_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.delete_consumable_button.hide()
+
+        #Row 1 - element 2 - edit mode
+        self.consumable_text = QLineEdit(consumable, self)
+        self.consumable_text.setFixedHeight(60)
+        self.consumable_text.setFixedWidth(400)
+        self.consumable_text.setAlignment(Qt.AlignCenter)
+        self.consumable_text.setFont(QFont("Times New Roman", 20))
+        self.consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.consumable_text.hide()
+
+        #Row 1 - element 3 - edit mode
+        self.cancel_consumable_edit_button = QPushButton("Cancel" , self)
+        self.cancel_consumable_edit_button.setFixedHeight(60)
+        self.cancel_consumable_edit_button.setFixedWidth(160)
+        self.cancel_consumable_edit_button.setFont(QFont("Times New Roman", 20)) 
+        self.cancel_consumable_edit_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.cancel_consumable_edit_button.clicked.connect(self.cancel_consumable_edit)                    
+        self.cancel_consumable_edit_button.hide()
+
+        #Row 1 - element 4 - edit mode
+        self.save_consumable_button = QPushButton("Save" , self)
+        self.save_consumable_button.setFixedHeight(60)
+        self.save_consumable_button.setFixedWidth(160)
+        self.save_consumable_button.setFont(QFont("Times New Roman", 20)) 
+        self.save_consumable_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
@@ -1113,42 +1228,260 @@ class MainWindow(QMainWindow):
                                 }
                             """)
 
-        scroll_area = QScrollArea()
+        self.save_consumable_button.clicked.connect(lambda: self.save_consumable_edit(consumable, self.consumable_text.text()))   
+        self.save_consumable_button.hide()
+
+        #Row 3 - element 1
+        brand_text = QLineEdit(self)
+        brand_text.setFixedHeight(60)
+        brand_text.setFixedWidth(400)
+        brand_text.setPlaceholderText("Brand e.g. (Coke)")
+        brand_text.setAlignment(Qt.AlignCenter)
+        brand_text.setFont(QFont("Times New Roman", 20))
+        brand_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 3 - element 2
+        protein_text = QLineEdit(self)
+        protein_text.setFixedHeight(60)
+        protein_text.setFixedWidth(280)
+        protein_text.setPlaceholderText("Protein")
+        protein_text.setAlignment(Qt.AlignCenter)
+        protein_text.setFont(QFont("Times New Roman", 20))
+        protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 3 - element 3
+        carbs_text = QLineEdit(self)
+        carbs_text.setFixedHeight(60)
+        carbs_text.setFixedWidth(280)
+        carbs_text.setPlaceholderText("Carbs")
+        carbs_text.setAlignment(Qt.AlignCenter)
+        carbs_text.setFont(QFont("Times New Roman", 20))
+        carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 3 - element 4
+        fat_text = QLineEdit(self)
+        fat_text.setFixedHeight(60)
+        fat_text.setFixedWidth(280)
+        fat_text.setPlaceholderText("Fat")
+        fat_text.setAlignment(Qt.AlignCenter)
+        fat_text.setFont(QFont("Times New Roman", 20))
+        fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 4 - element 1
+        variant_text = QLineEdit(self)
+        variant_text.setFixedHeight(60)
+        variant_text.setFixedWidth(400)
+        variant_text.setPlaceholderText("Variant e.g. (Vanilla)")
+        variant_text.setAlignment(Qt.AlignCenter)
+        variant_text.setFont(QFont("Times New Roman", 20))
+        variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 4 - element 2
+        servings_text = QLineEdit(self)
+        servings_text.setFixedHeight(60)
+        servings_text.setFixedWidth(280)
+        servings_text.setPlaceholderText("Servings e.g. (12) for eggs")
+        servings_text.setAlignment(Qt.AlignCenter)
+        servings_text.setFont(QFont("Times New Roman", 20))
+        servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 4 - element 3
+        price_text = QLineEdit(self)
+        price_text.setFixedHeight(60)
+        price_text.setFixedWidth(280)
+        price_text.setPlaceholderText("Price e.g. (2.99)")
+        price_text.setAlignment(Qt.AlignCenter)
+        price_text.setFont(QFont("Times New Roman", 20))
+        price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 4 - element 4
+        save_variant_button = QPushButton("Save" , self)
+        save_variant_button.setFixedHeight(60)
+        save_variant_button.setFixedWidth(160)
+        save_variant_button.setFont(QFont("Times New Roman", 20)) 
+        save_variant_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)        
+
+        variants_scroll = QScrollArea()
+        variants_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        variants_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
         self.variants_widget = QWidget()
         self.variants_widget.setFixedHeight(944)
         self.variants_widget.setFixedWidth(1400)
 
         variants_layout = QVBoxLayout()
-        variants_layout.setContentsMargins(20, 20, 20, 20)
-        variants_layout.setSpacing(80)
+        variants_layout.setContentsMargins(0, 0, 0, 0)
+        variants_layout.setSpacing(0)
 
+        #Row 1 widget/layout
         variants_row1_widget = QWidget()
-        variants_row1_widget.setFixedHeight(300)
+        variants_row1_widget.setFixedHeight(100)
 
-        variants_row1_layout = QVBoxLayout()
+        variants_row1_layout = QHBoxLayout()
         variants_row1_layout.setContentsMargins(0, 0, 0, 0)
-        variants_row1_layout.setSpacing(0)
+        variants_row1_layout.setSpacing(40)
         
         variants_row1_layout.addStretch()
-        variants_row1_layout.addWidget(consumable_button)
+        variants_row1_layout.addWidget(self.consumable_button)
+        variants_row1_layout.addWidget(self.consumable_edit_button)
+        variants_row1_layout.addWidget(self.delete_consumable_button)
+        variants_row1_layout.addWidget(self.consumable_text)
+        variants_row1_layout.addWidget(self.cancel_consumable_edit_button)
+        variants_row1_layout.addWidget(self.save_consumable_button)
         variants_row1_layout.addStretch()
 
         variants_row1_widget.setLayout(variants_row1_layout)
 
+        spacer = QWidget()
+        spacer.setStyleSheet("background-color: #171514")
+        spacer.setFixedHeight(2)
+
+        spacer2 = QWidget()
+        spacer2.setStyleSheet("background-color: #171514")
+        spacer2.setFixedHeight(2)
+
         variants_row2_widget = QWidget()
 
-        scroll_area.setWidget(variants_row2_widget)
-
         variants_row2_layout = QGridLayout()
-        variants_row2_layout.setContentsMargins(0, 0, 0, 0)
-        variants_row2_layout.setSpacing(80)
+        variants_row2_layout.setContentsMargins(60, 20, 60, 20)
+        variants_row2_layout.setSpacing(40)
+
+        x = 0
+        y = 0
+
+        for variant in self.local_consumables[consumable]:
+
+            button = variant
+
+            button = QPushButton(variant, self)
+            button.setFixedHeight(80)
+            button.setFixedWidth(400)
+            button.setFont(QFont("Times New Roman", 20))
+            button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)            
+
+            variants_row2_layout.addWidget(button, x, y)
+
+            if y < 2:
+                y += 1
+            
+            else:
+                y = 0
+                x += 1
+
+        variants_row2_widget.setLayout(variants_row2_layout)
+
+        variants_scroll.setWidget(variants_row2_widget)
+
+        #Row 3 widget/layout
+        variants_row3_widget = QWidget()
+        variants_row3_widget.setFixedHeight(100)
+
+        variants_row3_layout = QHBoxLayout()
+        variants_row3_layout.setContentsMargins(0, 0, 0, 0)
+        variants_row3_layout.setSpacing(40)
+
+        variants_row3_layout.addSpacing(20)
+        variants_row3_layout.addWidget(brand_text)
+        variants_row3_layout.addWidget(protein_text)
+        variants_row3_layout.addWidget(carbs_text)
+        variants_row3_layout.addWidget(fat_text)
+        variants_row3_layout.addSpacing(20)
+
+        variants_row3_widget.setLayout(variants_row3_layout)
 
 
+        #Row 4 widget/layout
+        variants_row4_widget = QWidget()
+        variants_row4_widget.setFixedHeight(100)
 
+        variants_row4_layout = QHBoxLayout()
+        variants_row4_layout.setContentsMargins(0, 0, 0, 0)
+        variants_row4_layout.setSpacing(40)
 
+        variants_row4_layout.addSpacing(20)
+        variants_row4_layout.addWidget(variant_text)
+        variants_row4_layout.addWidget(servings_text)
+        variants_row4_layout.addWidget(price_text)
+        variants_row4_layout.addSpacing(60)
+        variants_row4_layout.addWidget(save_variant_button)
+        variants_row4_layout.addSpacing(60)
+        variants_row4_layout.addSpacing(20)
 
+        variants_row4_widget.setLayout(variants_row4_layout)
+
+        #Set variants layout
         variants_layout.addWidget(variants_row1_widget)
+        variants_layout.addWidget(spacer)
+        variants_layout.addWidget(variants_scroll)
+        variants_layout.addWidget(spacer2)
+        variants_layout.addWidget(variants_row3_widget)
+        variants_layout.addWidget(variants_row4_widget)
+
+        self.variants_widget.setLayout(variants_layout)
+
+        self.central_layout.insertWidget(1, self.variants_widget)
+
+        self.current_widget = "Variants"
+        
+
+
+
+    def consumable_edit(self):
+        self.consumable_button.hide()
+        self.consumable_edit_button.hide()
+        self.delete_consumable_button.show()
+        self.consumable_text.show()
+        self.cancel_consumable_edit_button.show()
+        self.save_consumable_button.show()
+
+    def cancel_consumable_edit(self):
+        self.consumable_button.show()
+        self.consumable_edit_button.show()
+        self.delete_consumable_button.hide()
+        self.consumable_text.hide()
+        self.cancel_consumable_edit_button.hide()
+        self.save_consumable_button.hide()
+
+    def save_consumable_edit(self, current, new):
+        if new:
+            self.local_consumables[new] = self.local_consumables.pop(current)
+
+            with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+
+            self.consumable_button.setText(new)
+
+            self.cancel_consumable_edit()
 
     def recipes(self):
         pass
@@ -1191,11 +1524,35 @@ class MainWindow(QMainWindow):
 
 
 
-    def tab_switcher(self):
-        #TODO - Logic for switching widgets when a tab is pressed to call a new page
-        pass
+    def tab_switcher(self, new_widget):
 
+        match self.current_widget:
+            case "New Profile":
+                self.central_layout.removeWidget(self.new_profile_widget)
+                self.new_profile_widget.setParent(None)
+                self.new_profile_widget.deleteLater()
+            case "Profiles":
+                self.central_layout.removeWidget(self.profiles_widget)
+                self.profiles_widget.setParent(None)
+                self.profiles_widget.deleteLater()
+            case "Consumables":
+                self.central_layout.removeWidget(self.consumables_widget)
+                self.consumables_widget.setParent(None)
+                self.consumables_widget.deleteLater()
+            case "Variants":
+                self.central_layout.removeWidget(self.variants_widget)
+                self.variants_widget.setParent(None)
+                self.variants_widget.deleteLater()
 
+        match new_widget:
+            case "New Profile":
+                self.new_profile()
+            case "Profiles":
+                self.profiles()
+            case "Consumables":
+                self.consumables()
+            case "Variants":
+                self.consumable_variants()
 
         
     
