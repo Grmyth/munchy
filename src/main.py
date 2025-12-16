@@ -3,8 +3,8 @@ import json
 import datetime
 import math
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QHBoxLayout, QVBoxLayout, QWidget, QScrollArea, QLabel, QLineEdit, QComboBox, QPushButton
-from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QHBoxLayout, QVBoxLayout, QWidget, QScrollArea, QLabel, QLineEdit, QComboBox, QPushButton, QFileDialog
+from PyQt5.QtGui import QFont, QPixmap
 from functools import partial
 
 
@@ -84,8 +84,8 @@ class MainWindow(QMainWindow):
         self.central_widget.setLayout(self.central_layout)
 
         if not self.local_profiles:
-            self.tabs_widget.hide()
             self.new_profile()
+            self.cancel_new_save_button.hide()
 
         else:
             self.profiles()
@@ -183,6 +183,12 @@ class MainWindow(QMainWindow):
 
                                 QPushButton:Hover {
                                     background-color: #171514;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #171514;
+                                        }
+                                QPushButton:focus {
+                                    border: 0px; outline: none; 
                                 }
                             """)
         self.profiles_tab.clicked.connect(lambda: self.tab_switcher("Profiles"))
@@ -286,14 +292,43 @@ class MainWindow(QMainWindow):
 
     def new_profile(self):
 
+        self.tabs_widget.hide()
         self.can_save_profile = False
 
         #Center column - Row 1 - Profile picture
         self.new_profile_picture = QLabel(self)
+        self.picture_URL = "./assets/profile picture/Profile.png"
+        pixmap = QPixmap(self.picture_URL)
+        self.new_profile_picture.setPixmap(pixmap)
+        self.new_profile_picture.setScaledContents(True)
         self.new_profile_picture.setFixedHeight(260)
         self.new_profile_picture.setFixedWidth(260)
+        self.new_profile_picture.setAlignment(Qt.AlignCenter)
         self.new_profile_picture.setFocusPolicy(Qt.StrongFocus)
-        self.new_profile_picture.setStyleSheet("background-color: #171514; border: 2px solid black; border-radius: 20px")
+        self.new_profile_picture.setStyleSheet("background-color: #171514; border: 2px solid black")
+
+        add_new_picture_button = QPushButton("Upload", self)
+        add_new_picture_button.setFixedHeight(60)
+        add_new_picture_button.setFixedWidth(140)
+        add_new_picture_button.setFont(QFont("Times New Roman", 20))
+        add_new_picture_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        
+        add_new_picture_button.clicked.connect(lambda: self.update_profile_picture("New Profile"))
 
         #Center column - Row 2 - Name
         self.new_name_text = QLineEdit(self)
@@ -338,66 +373,82 @@ class MainWindow(QMainWindow):
         self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
         self.new_year_text.textEdited.connect(lambda: self.is_empty(self.new_year_text))
 
-        #Center column - Row 4 - Height
+        #Center column - Row 4 - Gender
             
             #elements left to right
 
         # -- element 1 --
-        self.new_foot_height_text = QLineEdit(self)
-        self.new_foot_height_text.setPlaceholderText("Height (Feet)")
-        self.new_foot_height_text.setFixedHeight(60)
-        self.new_foot_height_text.setFixedWidth(297)
-        self.new_foot_height_text.setAlignment(Qt.AlignCenter)
-        self.new_foot_height_text.setFont(QFont("Times New Roman", 20))
-        self.new_foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_foot_height_text.textEdited.connect(lambda: self.is_empty(self.new_foot_height_text))
+        self.gender_male_button = QPushButton("Male", self)
+        self.gender_male_button.setFixedHeight(60)
+        self.gender_male_button.setFixedWidth(297)
+        self.gender_male_button.setFont(QFont("Times New Roman", 20))
+        self.gender_male_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.gender_male_button.clicked.connect(lambda: self.gender_state("Male"))
+        
+        #self.gender_male_button.clicked.connect()
 
         # -- element 2 --
-        self.new_inch_height_text = QLineEdit(self)
-        self.new_inch_height_text.setPlaceholderText("Height (Inches)")
-        self.new_inch_height_text.setFixedHeight(60)
-        self.new_inch_height_text.setFixedWidth(297)
-        self.new_inch_height_text.setAlignment(Qt.AlignCenter)
-        self.new_inch_height_text.setFont(QFont("Times New Roman", 20))
-        self.new_inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_inch_height_text.textEdited.connect(lambda: self.is_empty(self.new_inch_height_text))
+        self.gender_female_button = QPushButton("Female", self)
+        self.gender_female_button.setFixedHeight(60)
+        self.gender_female_button.setFixedWidth(297)
+        self.gender_female_button.setFont(QFont("Times New Roman", 20))
+        self.gender_female_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
 
-        #Center column - Row 5
-            
-            #elements left to right
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.gender_female_button.clicked.connect(lambda: self.gender_state("Female"))
+        
+        #self.gender_female_button.clicked.connect()
 
-        # -- element 1 --
+        #Center column - Row 5 - Height
+        self.new_height_text = QLineEdit(self)
+        self.new_height_text.setPlaceholderText("Height (cm's)")
+        self.new_height_text.setFixedHeight(60)
+        self.new_height_text.setFixedWidth(600)
+        self.new_height_text.setAlignment(Qt.AlignCenter)
+        self.new_height_text.setFont(QFont("Times New Roman", 20))
+        self.new_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.new_height_text.textEdited.connect(lambda: self.is_empty(self.new_height_text))
+
+
+        #Center column - Row 6
         self.new_weight_text = QLineEdit(self)
-        self.new_weight_text.setPlaceholderText("Weight")
+        self.new_weight_text.setPlaceholderText("Weight (kg's)")
         self.new_weight_text.setFixedHeight(60)
-        self.new_weight_text.setFixedWidth(297)
+        self.new_weight_text.setFixedWidth(600)
         self.new_weight_text.setAlignment(Qt.AlignCenter)
         self.new_weight_text.setFont(QFont("Times New Roman", 20))
         self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
         self.new_weight_text.textEdited.connect(lambda: self.is_empty(self.new_weight_text))
 
-        # -- element 2 --
-        self.new_weight_combo = QComboBox(self)
-        self.new_weight_combo.setFixedHeight(60)
-        self.new_weight_combo.setFixedWidth(297)
-        self.new_weight_combo.setFont(QFont("Times New Roman", 20))
-        self.new_weight_combo.setStyleSheet("""
-                                QComboBox {
-                                    color: #645e59; background-color: #171514; border: 2px solid black; 
-                                    border-radius: 14px; padding-left: 64px;
-                                }
-                                
-                                QComboBox::drop-down {
-                                    border-top-right-radius: 4px; border-top-right-radius: 4px;
-                                }""")
-
-        self.new_weight_combo.addItems([
-                                "▼    KG's    ▼", 
-                                "▼    LB's    ▼"
-                                ])
-        self.new_weight_combo.setCurrentIndex(0)
-
-        #Center column - Row 6
+        #Center column - Row 7
         self.new_activity_combo = QComboBox(self)
         self.new_activity_combo.setFixedHeight(60)
         self.new_activity_combo.setFixedWidth(600)
@@ -416,22 +467,47 @@ class MainWindow(QMainWindow):
         self.new_activity_combo.addItems([
                                 "▼    Sedentary: little or no exercise", 
                                 "▼    Light: exercise 1-3 times/week", 
-                                "▼    Moderate: exercise 4-5 times/week", 
-                                "▼    Active: intense exercise 3-4 times/week",
+                                "▼    Moderate: exercise 4-5 times/week",
                                 "▼    Very Active: intense exercise 6-7 times/week",
                                 "▼    Extra Active: very intense daily exercise"
                                 ])
         self.new_activity_combo.setCurrentIndex(2)
 
-        #Right column
+        # -- Right column - Row 1 --
+
+        #element 1
+        self.cancel_new_save_button = QPushButton("Cancel", self)
+        self.cancel_new_save_button.setFixedHeight(60)
+        self.cancel_new_save_button.setFixedWidth(140)
+        self.cancel_new_save_button.setFont(QFont("Times New Roman", 20))
+        self.cancel_new_save_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        
+        self.cancel_new_save_button.clicked.connect(lambda: self.tab_switcher("Profiles"))
+
+        #element 2
         new_save_button = QPushButton("Save", self)
         new_save_button.setFixedHeight(60)
-        new_save_button.setFixedWidth(280)
+        new_save_button.setFixedWidth(140)
         new_save_button.setFont(QFont("Times New Roman", 20))
         new_save_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
-                                    border-radius: 14px; margin-left: 130px; text-align: center;
+                                    border-radius: 14px; text-align: center;
                                 }
 
                                 QPushButton:Hover {
@@ -481,48 +557,52 @@ class MainWindow(QMainWindow):
         new_profile_col2_row4_layout.setContentsMargins(0, 0, 0, 0)
         new_profile_col2_row4_layout.setSpacing(6)
 
-        new_profile_col2_row4_layout.addWidget(self.new_foot_height_text)
-        new_profile_col2_row4_layout.addWidget(self.new_inch_height_text)
+        new_profile_col2_row4_layout.addWidget(self.gender_male_button)
+        new_profile_col2_row4_layout.addWidget(self.gender_female_button)
 
         new_profile_col2_row4_widget.setLayout(new_profile_col2_row4_layout)
 
-        new_profile_col2_row5_widget = QWidget()
-        new_profile_col2_row5_widget.setFixedHeight(60)
-
-        new_profile_col2_row5_layout = QHBoxLayout()
-        new_profile_col2_row5_layout.setContentsMargins(0, 0, 0, 0)
-        new_profile_col2_row5_layout.setSpacing(6)
-
-        new_profile_col2_row5_layout.addWidget(self.new_weight_text)
-        new_profile_col2_row5_layout.addWidget(self.new_weight_combo)
-
-        new_profile_col2_row5_widget.setLayout(new_profile_col2_row5_layout)
-
-
         new_profile_col2_layout.addStretch()
-        new_profile_col2_layout.addSpacing(120)
+        new_profile_col2_layout.addSpacing(20)
         new_profile_col2_layout.addWidget(self.new_profile_picture, alignment=Qt.AlignHCenter)
-        new_profile_col2_layout.addSpacing(140)
+        new_profile_col2_layout.addWidget(add_new_picture_button, alignment=Qt.AlignHCenter)
+        new_profile_col2_layout.addSpacing(40)
         new_profile_col2_layout.addWidget(self.new_name_text)
         new_profile_col2_layout.addWidget(new_profile_col2_row3_widget)
         new_profile_col2_layout.addWidget(new_profile_col2_row4_widget)
-        new_profile_col2_layout.addWidget(new_profile_col2_row5_widget)
+        new_profile_col2_layout.addWidget(self.new_height_text)
+        new_profile_col2_layout.addWidget(self.new_weight_text)
         new_profile_col2_layout.addWidget(self.new_activity_combo)
-        new_profile_col2_layout.addSpacing(140)
+        new_profile_col2_layout.addSpacing(120)
         
 
         new_profile_col2_widget.setLayout(new_profile_col2_layout)
 
         new_profile_col3_widget = QWidget()
         new_profile_col3_widget.setStyleSheet("background-color: #24201f")
+        new_profile_col3_widget.setFixedWidth(400)
 
         new_profile_col3_layout = QVBoxLayout()
         new_profile_col3_layout.setContentsMargins(0, 0, 0, 0)
         new_profile_col3_layout.setSpacing(20)
 
+        new_profile_col3_row1_widget = QWidget()
+        new_profile_col3_row1_widget.setStyleSheet("background-color: #24201f")
+
+        new_profile_col3_row1_layout = QHBoxLayout()
+        new_profile_col3_row1_layout.setContentsMargins(0, 0, 0, 0)
+        new_profile_col3_row1_layout.setSpacing(20)
+
+        new_profile_col3_row1_layout.addStretch()
+        new_profile_col3_row1_layout.addWidget(self.cancel_new_save_button)
+        new_profile_col3_row1_layout.addWidget(new_save_button)
+        new_profile_col3_row1_layout.addStretch()
+
+        new_profile_col3_row1_widget.setLayout(new_profile_col3_row1_layout)
+
         new_profile_col3_layout.addStretch()
         new_profile_col3_layout.addSpacing(20)
-        new_profile_col3_layout.addWidget(new_save_button)
+        new_profile_col3_layout.addWidget(new_profile_col3_row1_widget)
         new_profile_col3_layout.addSpacing(140)
 
         new_profile_col3_widget.setLayout(new_profile_col3_layout)
@@ -544,15 +624,87 @@ class MainWindow(QMainWindow):
 
 
 
+    def gender_state(self, gender):
+        self.current_gender = gender
+
+        if self.current_gender == "Male":
+            self.gender_male_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid #645e59; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid #645e59; outline: none; 
+                                }
+                            """)
+            self.gender_female_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        else: 
+            self.gender_female_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid #645e59; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid #645e59; outline: none; 
+                                }
+                            """)
+            self.gender_male_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+
     def save_profile(self):
 
+        self.can_save_profile = True
+        
         #Check to see if the profile name exists
         name = self.new_name_text.text()
         for profiles in self.local_profiles:
             for value in profiles.values():
                 if value == self.new_name_text.text():
                     self.can_save_profile = False
-                    self.new_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+                    self.new_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                     self.new_name_text.setText("")
                     self.new_name_text.setPlaceholderText("Name already taken")
                 
@@ -562,13 +714,13 @@ class MainWindow(QMainWindow):
 
             if day < 1 or day > 31:
                 self.can_save_profile = False
-                self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+                self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_day_text.setText("")
                 self.new_day_text.setPlaceholderText("(1-31)")
 
         except ValueError:
             self.can_save_profile = False
-            self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_day_text.setText("")
             self.new_day_text.setPlaceholderText("(1-31)")
 
@@ -577,13 +729,13 @@ class MainWindow(QMainWindow):
 
             if month < 1 or month > 12:
                 self.can_save_profile = False
-                self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+                self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_month_text.setText("")
                 self.new_month_text.setPlaceholderText("(1-12)")
 
         except ValueError:
             self.can_save_profile = False
-            self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_month_text.setText("")
             self.new_month_text.setPlaceholderText("(1-12)")
 
@@ -592,88 +744,71 @@ class MainWindow(QMainWindow):
 
             if year < 1900 or year > 2025:
                 self.can_save_profile = False
-                self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+                self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_year_text.setText("")
                 self.new_year_text.setPlaceholderText("(1900-2025)")
 
         except ValueError:
             self.can_save_profile = False
-            self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_year_text.setText("")
             self.new_year_text.setPlaceholderText("(1900-2025)")
 
+        gender = self.current_gender
 
-        #Confirm that the height Ft/In is valid
+        #Confirm that the height is valid
         try:
-            ft = int(self.new_foot_height_text.text())
+            height = int(self.new_height_text.text())
 
-            if ft < 0 or ft > 9:
+            if height <= 0 or height > 400:
                 self.can_save_profile = False
-                self.new_foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
-                self.new_foot_height_text.setText("")
-                self.new_foot_height_text.setPlaceholderText("(0-9)")
+                self.new_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.new_height_text.setText("")
+                self.new_height_text.setPlaceholderText("(0-400)")
 
         except ValueError:
             self.can_save_profile = False
-            self.new_foot_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
-            self.new_foot_height_text.setText("")
-            self.new_foot_height_text.setPlaceholderText("(0-9)")
-
-        try:
-            inch = int(self.new_inch_height_text.text())
-
-            if inch < 0 or inch > 11:
-                self.can_save_profile = False
-                self.new_inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
-                self.new_inch_height_text.setText("")
-                self.new_inch_height_text.setPlaceholderText("(0-11)")
-
-        except ValueError:
-            self.can_save_profile = False
-            self.new_inch_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
-            self.new_inch_height_text.setText("")
-            self.new_inch_height_text.setPlaceholderText("(0-11)")
+            self.new_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.new_height_text.setText("")
+            self.new_height_text.setPlaceholderText("(0-400)")
 
         #Confirm that the height weight is valid
         try:
-            weight_number = float(self.new_weight_text.text())
+            weight = float(self.new_weight_text.text())
 
-            if weight_number < 1 or weight_number > 2000:
+            if weight < 1 or weight > 1000:
                 self.can_save_profile = False
-                self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+                self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_weight_text.setText("")
-                self.new_weight_text.setPlaceholderText("(1-2000)")
+                self.new_weight_text.setPlaceholderText("(1-1000)")
 
-            weight_number = float(f"{weight_number:.1f}")
+            weight = float(f"{weight:.1f}")
 
         except ValueError:
             self.can_save_profile = False
-            self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_weight_text.setText("")
-            self.new_weight_text.setPlaceholderText("(1-2000)")
+            self.new_weight_text.setPlaceholderText("(1-1000)")
 
-        measurement = self.new_weight_combo.currentIndex()
 
         #Activity - does not require validation checking
         activity = self.new_activity_combo.currentIndex()
 
         if self.can_save_profile == True:
 
+            dob = datetime.date(year, month, day)
+
             profile_update = {
+                "picture": self.picture_URL,
                 "name": name,
                 "dob": {
                     "day": day,
                     "month": month,
                     "year": year
-                }, 
-                "height": {
-                    "ft": ft,
-                    "inch": inch
-                }, 
-                "weight": {
-                    "unit": weight_number,
-                    "kg/lb": measurement
-                }, 
+                },
+                "gender": gender,
+                "height": height, 
+                "weight": weight, 
                 "activity": activity
             }
 
@@ -692,21 +827,35 @@ class MainWindow(QMainWindow):
     def profiles(self):
 
         #Profiles - elements
-        self.profile_picture = QLabel("munchy", self)
-        self.profile_picture.setFixedHeight(412)
-        self.profile_picture.setFixedWidth(412)
+        self.profile_picture = QLabel(self)
+        self.picture_URL = self.local_profiles[0]['picture']
+        pixmap = QPixmap(self.picture_URL)
+        self.profile_picture.setPixmap(pixmap)
+        self.profile_picture.setScaledContents(True)
+        self.profile_picture.setFixedHeight(440)
+        self.profile_picture.setFixedWidth(440)
         self.profile_picture.setAlignment(Qt.AlignCenter)
         self.profile_picture.setFont(QFont("Times New Roman", 20))
-        self.profile_picture.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_picture.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black")
 
-        self.next_profile_button = QPushButton("→", self)
-        self.next_profile_button.setFixedHeight(88)
-        self.next_profile_button.setFixedWidth(190)
-        self.next_profile_button.setFont(QFont("Times New Roman", 60))
-        self.next_profile_button.setStyleSheet("""
+        self.preview_profile_picture = QLabel(self)
+        self.preview_profile_picture.setPixmap(pixmap)
+        self.preview_profile_picture.setScaledContents(True)
+        self.preview_profile_picture.setFixedHeight(360)
+        self.preview_profile_picture.setFixedWidth(400)
+        self.preview_profile_picture.setAlignment(Qt.AlignCenter)
+        self.preview_profile_picture.setFont(QFont("Times New Roman", 20))
+        self.preview_profile_picture.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; margin-left: 40px")
+        self.preview_profile_picture.hide()
+
+        self.edit_profile_picture_button = QPushButton("Browse...", self)
+        self.edit_profile_picture_button.setFixedHeight(60)
+        self.edit_profile_picture_button.setFixedWidth(290)
+        self.edit_profile_picture_button.setFont(QFont("Times New Roman", 18))
+        self.edit_profile_picture_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
-                                    border-radius: 14px; padding-bottom: 22px; text-align: center;
+                                    border-radius: 14px; text-align: center; margin-left: 150px;
                                 }
 
                                 QPushButton:Hover {
@@ -719,11 +868,58 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
+        self.edit_profile_picture_button.clicked.connect(lambda: self.update_profile_picture("Current Profile"))
+        self.edit_profile_picture_button.hide()
 
-        self.add_profile_button = QPushButton("+ Profile", self)
-        self.add_profile_button.setFixedHeight(88)
-        self.add_profile_button.setFixedWidth(190)
-        self.add_profile_button.setFont(QFont("Times New Roman", 20))
+        self.next_profile_button = QPushButton("Next\nProfile", self)
+        self.next_profile_button.setFixedHeight(80)
+        self.next_profile_button.setFixedWidth(140)
+        self.next_profile_button.setFont(QFont("Times New Roman", 18))
+        self.next_profile_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.next_profile_button.clicked.connect(self.next_profile)
+
+        self.delete_profile_button = QPushButton("Delete", self)
+        self.delete_profile_button.setFixedHeight(80)
+        self.delete_profile_button.setFixedWidth(140)
+        self.delete_profile_button.setFont(QFont("Times New Roman", 20))
+        self.delete_profile_button.setStyleSheet("""
+                                QPushButton {
+                                    color: black; background-color: #971c3c; border: 2px solid #841934; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #b22150;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #971c3c;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid #841934; outline: none; 
+                                }
+                            """)
+        self.delete_profile_button.clicked.connect(self.delete_profile)
+        self.delete_profile_button.hide()
+                            
+        self.add_profile_button = QPushButton("Add\nProfile", self)
+        self.add_profile_button.setFixedHeight(80)
+        self.add_profile_button.setFixedWidth(140)
+        self.add_profile_button.setFont(QFont("Times New Roman", 18))
         self.add_profile_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
@@ -741,44 +937,144 @@ class MainWindow(QMainWindow):
                                 }
                             """)
         self.add_profile_button.clicked.connect(lambda: self.tab_switcher("New Profile"))
+
+        self.cancel_profile_button = QPushButton("Cancel", self)
+        self.cancel_profile_button.setFixedHeight(80)
+        self.cancel_profile_button.setFixedWidth(140)
+        self.cancel_profile_button.setFont(QFont("Times New Roman", 20))
+        self.cancel_profile_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.cancel_profile_button.clicked.connect(self.cancel_edit_profile)
+        self.cancel_profile_button.hide()
+
+        self.edit_profile_button = QPushButton("Edit\nProfile", self)
+        self.edit_profile_button.setFixedHeight(80)
+        self.edit_profile_button.setFixedWidth(140)
+        self.edit_profile_button.setFont(QFont("Times New Roman", 18))
+        self.edit_profile_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.edit_profile_button.clicked.connect(self.edit_profile)
+
+        self.save_profile_button = QPushButton("Save", self)
+        self.save_profile_button.setFixedHeight(80)
+        self.save_profile_button.setFixedWidth(140)
+        self.save_profile_button.setFont(QFont("Times New Roman", 20))
+        self.save_profile_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.save_profile_button.clicked.connect(self.save_edit_profile)
+        self.save_profile_button.hide()
         
         name = f"Name:    {self.local_profiles[0]['name']}"
-        self.name_label = QLabel(name, self)
-        self.name_label.setFixedHeight(88)
-        self.name_label.setFixedWidth(856)
-        self.name_label.setAlignment(Qt.AlignCenter)
-        self.name_label.setFont(QFont("Times New Roman", 20))
-        self.name_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_name_label = QLabel(name, self)
+        self.profile_name_label.setFixedHeight(80)
+        self.profile_name_label.setFixedWidth(740)
+        self.profile_name_label.setAlignment(Qt.AlignCenter)
+        self.profile_name_label.setFont(QFont("Times New Roman", 20))
+        self.profile_name_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
-        age = f"Date of Birth:    {self.local_profiles[0]['dob']['day']} - {self.local_profiles[0]['dob']['month']} - {self.local_profiles[0]['dob']['year']}"
-        self.age_label = QLabel(age, self)
-        self.age_label.setFixedHeight(88)
-        self.age_label.setFixedWidth(856)
-        self.age_label.setAlignment(Qt.AlignCenter)
-        self.age_label.setFont(QFont("Times New Roman", 20))
-        self.age_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_name_text = QLineEdit(self.local_profiles[0]['name'], self)
+        self.profile_name_text.setFixedHeight(80)
+        self.profile_name_text.setFixedWidth(740)
+        self.profile_name_text.setAlignment(Qt.AlignCenter)
+        self.profile_name_text.setFont(QFont("Times New Roman", 20))
+        self.profile_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_name_text.hide()
 
-        height = f'Height:    {self.local_profiles[0]['height']['ft']} ft {self.local_profiles[0]['height']['inch']} "'
-        self.height_label = QLabel(height, self)
-        self.height_label.setFixedHeight(88)
-        self.height_label.setFixedWidth(856)
-        self.height_label.setAlignment(Qt.AlignCenter)
-        self.height_label.setFont(QFont("Times New Roman", 20))
-        self.height_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.current_age = 0
+        self.calculate_age()
 
-        weight = ""
-        match self.local_profiles[0]['weight']['kg/lb']:
-            case 0:
-                weight = f"Weight:    {self.local_profiles[0]['weight']['unit']} kg's"
-            case 1:
-                weight = f"Weight:    {self.local_profiles[0]['weight']['unit']} lb's"
+        age = f"Date of Birth:    {self.local_profiles[0]['dob']['day']} - {self.local_profiles[0]['dob']['month']} - {self.local_profiles[0]['dob']['year']}    ({self.current_age} Years old)"
+        self.profile_age_label = QLabel(age, self)
+        self.profile_age_label.setFixedHeight(80)
+        self.profile_age_label.setFixedWidth(740)
+        self.profile_age_label.setAlignment(Qt.AlignCenter)
+        self.profile_age_label.setFont(QFont("Times New Roman", 20))
+        self.profile_age_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        gender = f"Gender:    {self.local_profiles[0]['gender']}"
+        self.profile_gender_label = QLabel(gender, self)
+        self.profile_gender_label.setFixedHeight(80)
+        self.profile_gender_label.setFixedWidth(740)
+        self.profile_gender_label.setAlignment(Qt.AlignCenter)
+        self.profile_gender_label.setFont(QFont("Times New Roman", 20))
+        self.profile_gender_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        height = f"Height:    {self.local_profiles[0]['height']} CM"
+        self.profile_height_label = QLabel(height, self)
+        self.profile_height_label.setFixedHeight(80)
+        self.profile_height_label.setFixedWidth(740)
+        self.profile_height_label.setAlignment(Qt.AlignCenter)
+        self.profile_height_label.setFont(QFont("Times New Roman", 20))
+        self.profile_height_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        self.profile_height_text = QLineEdit(self)
+        self.profile_height_text.setFixedHeight(80)
+        self.profile_height_text.setFixedWidth(740)
+        self.profile_height_text.setPlaceholderText("Height (cm's)")
+        self.profile_height_text.setAlignment(Qt.AlignCenter)
+        self.profile_height_text.setFont(QFont("Times New Roman", 20))
+        self.profile_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_height_text.hide()
+
         
-        self.weight_label = QLabel(weight, self)
-        self.weight_label.setFixedHeight(88)
-        self.weight_label.setFixedWidth(856)
-        self.weight_label.setAlignment(Qt.AlignCenter)
-        self.weight_label.setFont(QFont("Times New Roman", 20))
-        self.weight_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        weight = f"Weight:    {self.local_profiles[0]['weight']} KG"
+        self.profile_weight_label = QLabel(weight, self)
+        self.profile_weight_label.setFixedHeight(80)
+        self.profile_weight_label.setFixedWidth(740)
+        self.profile_weight_label.setAlignment(Qt.AlignCenter)
+        self.profile_weight_label.setFont(QFont("Times New Roman", 20))
+        self.profile_weight_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        self.profile_weight_text = QLineEdit(self)
+        self.profile_weight_text.setFixedHeight(80)
+        self.profile_weight_text.setFixedWidth(740)
+        self.profile_weight_text.setPlaceholderText("Weight (kg's)")
+        self.profile_weight_text.setAlignment(Qt.AlignCenter)
+        self.profile_weight_text.setFont(QFont("Times New Roman", 20))
+        self.profile_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_weight_text.hide()
 
         activity = ""
         match self.local_profiles[0]['activity']:
@@ -789,18 +1085,42 @@ class MainWindow(QMainWindow):
             case 2:
                 activity = "Activity:    Moderate - exercise 4-5 times/week"
             case 3:
-                activity = "Activity:    Active - intense exercise 3-4 times/week"
-            case 4:
                 activity = "Activity:    Very Active - intense exercise 6-7 times/week"
-            case 5:
+            case 4:
                 activity = "Activity:    Extra Active - very intense daily exercise"
 
-        self.activity_label = QLabel(activity, self)
-        self.activity_label.setFixedHeight(88)
-        self.activity_label.setFixedWidth(856)
-        self.activity_label.setAlignment(Qt.AlignCenter)
-        self.activity_label.setFont(QFont("Times New Roman", 20))
-        self.activity_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_activity_label = QLabel(activity, self)
+        self.profile_activity_label.setFixedHeight(80)
+        self.profile_activity_label.setFixedWidth(740)
+        self.profile_activity_label.setAlignment(Qt.AlignCenter)
+        self.profile_activity_label.setFont(QFont("Times New Roman", 20))
+        self.profile_activity_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        self.profile_activity_combo = QComboBox(self)
+        self.profile_activity_combo.setFixedHeight(80)
+        self.profile_activity_combo.setFixedWidth(740)
+        self.profile_activity_combo.setFont(QFont("Times New Roman", 20))
+        self.profile_activity_combo.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.profile_activity_combo.setStyleSheet("""
+                                QComboBox {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; padding-left: 10 px;
+                                }
+                                
+                                QComboBox::drop-down {
+                                    border-top-right-radius: 4px; border-top-right-radius: 4px;
+                                }
+                            """)
+
+        self.profile_activity_combo.addItems([
+                                "▼            Sedentary: little or no exercise", 
+                                "▼            Light: exercise 1-3 times/week", 
+                                "▼            Moderate: exercise 4-5 times/week",
+                                "▼            Very Active: intense exercise 6-7 times/week",
+                                "▼            Extra Active: very intense daily exercise"
+                                ])
+        self.profile_activity_combo.setCurrentIndex(self.local_profiles[0]['activity'])
+        self.profile_activity_combo.hide()
 
         #Men: (10 x weight in kg) + (6.25 x height in cm) - (5 x age in years) + 5
         #Women: (10 x weight in kg) + (6.25 x height in cm) - (5 x age in years) - 161 
@@ -809,28 +1129,65 @@ class MainWindow(QMainWindow):
 
         # ((feet * 6) + inches) * 2.54 = cm's
 
-        self.gain_label = QLabel("munchy", self)
+
+
+        #856 -> 740 label widths
+
+        self.current_TDEE = 0.00
+
+        temp_weight = 10 * float(self.local_profiles[0]['weight'])
+        temp_height = 6.25 * float(self.local_profiles[0]['height'])
+        temp_age = 5 * float(self.current_age)
+        
+        self.current_TDEE += temp_weight
+        self.current_TDEE += temp_height
+        self.current_TDEE -= temp_age
+
+        match self.local_profiles[0]['gender']:
+            case "Male":
+                self.current_TDEE += 5
+            case "Female":
+                self.current_TDEE -= 161
+
+        match self.local_profiles[0]['activity']:
+            case 0:
+                self.current_TDEE *= 1.2
+            case 1:
+                self.current_TDEE *= 1.375
+            case 2:
+                self.current_TDEE *= 1.55
+            case 3:
+                self.current_TDEE *= 1.725
+            case 4:
+                self.current_TDEE *= 1.9
+
+        gain = f"Weight Gain: {int(self.current_TDEE) + 500} calories"
+        maintain = f"Maintain Weight: {int(self.current_TDEE)} calories"
+        loss = f"Weight Loss: {int(self.current_TDEE) - 500} calories"
+        extreme_loss = f"Extreme Weight Loss: {int(self.current_TDEE) - 1000} calories"
+
+        self.gain_label = QLabel(gain, self)
         self.gain_label.setFixedHeight(90)
         self.gain_label.setFixedWidth(645)
         self.gain_label.setAlignment(Qt.AlignCenter)
         self.gain_label.setFont(QFont("Times New Roman", 20))
         self.gain_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
-        self.maintain_label = QLabel("munchy", self)
+        self.maintain_label = QLabel(maintain, self)
         self.maintain_label.setFixedHeight(90)
         self.maintain_label.setFixedWidth(645)
         self.maintain_label.setAlignment(Qt.AlignCenter)
         self.maintain_label.setFont(QFont("Times New Roman", 20))
         self.maintain_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
         
-        self.loss_label = QLabel("munchy", self)
+        self.loss_label = QLabel(loss, self)
         self.loss_label.setFixedHeight(90)
         self.loss_label.setFixedWidth(645)
         self.loss_label.setAlignment(Qt.AlignCenter)
         self.loss_label.setFont(QFont("Times New Roman", 20))
         self.loss_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
         
-        self.extreme_loss_label = QLabel("munchy", self)
+        self.extreme_loss_label = QLabel(extreme_loss, self)
         self.extreme_loss_label.setFixedHeight(90)
         self.extreme_loss_label.setFixedWidth(645)
         self.extreme_loss_label.setAlignment(Qt.AlignCenter)
@@ -852,12 +1209,15 @@ class MainWindow(QMainWindow):
         profiles_row1_layout.setSpacing(40)
 
         profiles_row1_col1_widget = QWidget()
+        profiles_row1_col1_widget.setFixedWidth(440)
 
         profiles_row1_col1_layout = QVBoxLayout()
         profiles_row1_col1_layout.setContentsMargins(0, 0, 0, 0)
-        profiles_row1_col1_layout.setSpacing(40)
+        profiles_row1_col1_layout.setSpacing(20)
 
         profiles_row1_col1_layout.addWidget(self.profile_picture)
+        profiles_row1_col1_layout.addWidget(self.preview_profile_picture)
+        profiles_row1_col1_layout.addWidget(self.edit_profile_picture_button)
 
         profiles_row1_col1_buttons_widget = QWidget()
 
@@ -866,8 +1226,14 @@ class MainWindow(QMainWindow):
         profiles_row1_col1_buttons_layout.setSpacing(0)
 
         profiles_row1_col1_buttons_layout.addWidget(self.next_profile_button)
+        profiles_row1_col1_buttons_layout.addWidget(self.delete_profile_button)
         profiles_row1_col1_buttons_layout.addStretch()
         profiles_row1_col1_buttons_layout.addWidget(self.add_profile_button)
+        profiles_row1_col1_buttons_layout.addWidget(self.cancel_profile_button)
+        profiles_row1_col1_buttons_layout.addStretch()
+        profiles_row1_col1_buttons_layout.addWidget(self.edit_profile_button)
+        profiles_row1_col1_buttons_layout.addWidget(self.save_profile_button)
+        
 
         profiles_row1_col1_buttons_widget.setLayout(profiles_row1_col1_buttons_layout)
 
@@ -879,13 +1245,18 @@ class MainWindow(QMainWindow):
 
         profiles_row1_col2_layout = QVBoxLayout()
         profiles_row1_col2_layout.setContentsMargins(0, 0, 0, 0)
-        profiles_row1_col2_layout.setSpacing(25)
+        profiles_row1_col2_layout.setSpacing(12)
 
-        profiles_row1_col2_layout.addWidget(self.name_label)
-        profiles_row1_col2_layout.addWidget(self.age_label)
-        profiles_row1_col2_layout.addWidget(self.height_label)
-        profiles_row1_col2_layout.addWidget(self.weight_label)
-        profiles_row1_col2_layout.addWidget(self.activity_label)
+        profiles_row1_col2_layout.addWidget(self.profile_name_label)
+        profiles_row1_col2_layout.addWidget(self.profile_name_text)
+        profiles_row1_col2_layout.addWidget(self.profile_age_label)
+        profiles_row1_col2_layout.addWidget(self.profile_gender_label)
+        profiles_row1_col2_layout.addWidget(self.profile_height_label)
+        profiles_row1_col2_layout.addWidget(self.profile_height_text)
+        profiles_row1_col2_layout.addWidget(self.profile_weight_label)
+        profiles_row1_col2_layout.addWidget(self.profile_weight_text)
+        profiles_row1_col2_layout.addWidget(self.profile_activity_label)
+        profiles_row1_col2_layout.addWidget(self.profile_activity_combo)
 
         profiles_row1_col2_widget.setLayout(profiles_row1_col2_layout)
 
@@ -947,6 +1318,163 @@ class MainWindow(QMainWindow):
 
         self.current_widget = "Profiles"
 
+
+
+    def next_profile(self):
+        profile = self.local_profiles.pop(0)
+        self.local_profiles.append(profile)
+
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+
+        self.tab_switcher("Profiles")
+
+    
+
+
+    def delete_profile(self):
+        self.local_profiles.pop(0)
+        self.tab_switcher("Profiles")
+
+
+
+
+    def edit_profile(self):
+
+        self.profile_picture.hide()
+
+        self.preview_profile_picture.show()
+        self.edit_profile_picture_button.show()
+
+        self.next_profile_button.hide()
+        self.add_profile_button.hide()
+        self.edit_profile_button.hide()
+
+        self.delete_profile_button.show()
+        self.cancel_profile_button.show()
+        self.save_profile_button.show()
+
+        self.profile_name_label.hide()
+        self.profile_height_label.hide()
+        self.profile_weight_label.hide()
+        self.profile_activity_label.hide()
+
+        self.profile_name_text.show()
+        self.profile_height_text.show()
+        self.profile_weight_text.show()
+        self.profile_activity_combo.show()
+
+
+
+
+    def cancel_edit_profile(self):
+
+        self.profile_picture.show()
+
+        self.preview_profile_picture.hide()
+        self.edit_profile_picture_button.hide()
+
+        self.next_profile_button.show()
+        self.add_profile_button.show()
+        self.edit_profile_button.show()
+
+        self.delete_profile_button.hide()
+        self.cancel_profile_button.hide()
+        self.save_profile_button.hide()
+
+        self.profile_name_label.show()
+        self.profile_height_label.show()
+        self.profile_weight_label.show()
+        self.profile_activity_label.show()
+
+        self.profile_name_text.hide()
+        self.profile_height_text.hide()
+        self.profile_weight_text.hide()
+        self.profile_activity_combo.hide()
+
+
+
+
+    def save_edit_profile(self):
+
+        self.can_save_profile = True
+
+        #Check to see if the profile name exists
+        name = self.profile_name_text.text()
+        if not name:
+                self.can_save_profile = False
+                self.profile_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.profile_name_text.setText("")
+                self.profile_name_text.setPlaceholderText("Enter a name")
+
+        #Confirm that the height is valid
+        try:
+            height = int(self.profile_height_text.text())
+
+            if height <= 0 or height > 400:
+                self.can_save_profile = False
+                self.profile_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.profile_height_text.setText("")
+                self.profile_height_text.setPlaceholderText("(0-400)")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.profile_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.profile_height_text.setText("")
+            self.profile_height_text.setPlaceholderText("(0-400)")
+
+        #Confirm that the height weight is valid
+        try:
+            weight = float(self.profile_weight_text.text())
+
+            if weight < 1 or weight > 1000:
+                self.can_save_profile = False
+                self.profile_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.profile_weight_text.setText("")
+                self.profile_weight_text.setPlaceholderText("(1-1000)")
+
+            weight = float(f"{weight:.1f}")
+
+        except ValueError:
+            self.can_save_profile = False
+            self.profile_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.profile_weight_text.setText("")
+            self.profile_weight_text.setPlaceholderText("(1-1000)")
+
+
+        #Activity - does not require validation checking
+        activity = self.profile_activity_combo.currentIndex()
+
+        if self.can_save_profile == True:
+
+            self.local_profiles[0].pop('picture')
+            self.local_profiles[0]['picture'] = self.picture_URL
+
+            self.local_profiles[0].pop('name')
+            self.local_profiles[0]['name'] = name
+
+            birthdate = self.local_profiles[0]['dob']
+            self.local_profiles[0].pop('dob')
+            self.local_profiles[0]['dob'] = birthdate
+
+            gender = self.local_profiles[0]['gender']
+            self.local_profiles[0].pop('gender')
+            self.local_profiles[0]['gender'] = gender
+
+            self.local_profiles[0].pop('height')
+            self.local_profiles[0]['height'] = height
+
+            self.local_profiles[0].pop('weight')
+            self.local_profiles[0]['weight'] = weight
+
+            self.local_profiles[0].pop('activity')
+            self.local_profiles[0]['activity'] = activity
+            
+            with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+
+            self.tab_switcher("Profiles")
+        
 
 
 
@@ -1082,13 +1610,13 @@ class MainWindow(QMainWindow):
     def add_consumable(self, name):
 
         if not name:
-            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_consumable_text.setText("")
             self.new_consumable_text.setPlaceholderText("No consumable detected")
             return
 
         if name in self.local_consumables:
-            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_consumable_text.setText("")
             self.new_consumable_text.setPlaceholderText("Consumable already added")
             return
@@ -1157,18 +1685,18 @@ class MainWindow(QMainWindow):
         self.delete_consumable_button.setFont(QFont("Times New Roman", 20)) 
         self.delete_consumable_button.setStyleSheet("""
                                 QPushButton {
-                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    color: black; background-color: #971c3c; border: 2px solid #841934; 
                                     border-radius: 14px; text-align: center;
                                 }
 
                                 QPushButton:Hover {
-                                    background-color: #1d1a19;
+                                    background-color: #b22150;
                                 }
                                 QPushButton:pressed {
-                                    background-color: #1d1a19;
+                                    background-color: #971c3c;
                                         }
                                 QPushButton:focus {
-                                    border: 2px solid black; outline: none; 
+                                    border: 2px solid #841934; outline: none; 
                                 }
                             """)
         self.delete_consumable_button.hide()
@@ -1506,24 +2034,6 @@ class MainWindow(QMainWindow):
 
 
 
-
-    def delete_profile(self, name):
-        #TODO - Logic for deleting a profile
-        if not self.local_profiles['name'].default:
-            #Delete if not the default profile
-            pass
-        else:
-            if self.local_profiles['name'].additional:
-                #Choose a new default profile
-                pass
-            else:
-                #Delete profile
-                pass
-
-
-
-
-
     def tab_switcher(self, new_widget):
 
         match self.current_widget:
@@ -1624,11 +2134,50 @@ class MainWindow(QMainWindow):
         #TODO - Read a form filled in by user on click, then generate the shopping list
         pass
 
+    def update_profile_picture(self, display):
+        picture, _ = QFileDialog.getOpenFileName(
+                                            None,
+                                            "Open file",
+                                            "",
+                                            "Images (*.png, *.jpg, *.jpeg);;All Files (*)"
+                                            )
+
+        if picture:
+            self.picture_URL = picture
+
+        pixmap = QPixmap(self.picture_URL)
+
+        match display:
+            case "New Profile":
+                self.new_profile_picture.setPixmap(pixmap)
+            case "Current Profile":
+                self.preview_profile_picture.setPixmap(pixmap)
+
+
+    def calculate_age(self):
+
+        birth_date = datetime.date(self.local_profiles[0]['dob']['year'], self.local_profiles[0]['dob']['month'], self.local_profiles[0]['dob']['day'])
+        current_date = datetime.datetime.now()
+
+        birth_day = birth_date.strftime("%d-%m")
+        current_day = current_date.strftime("%d-%m")
+
+        birth_year = birth_date.strftime("%Y")
+        current_year = current_date.strftime("%Y")
+
+        self.current_age = int(current_year) - int(birth_year)
+
+        if birth_day > current_day:
+            self.current_age -= 1
+
+        
+
+
     #Check if the current text field is empty and show error color on border - only after typing and removing input
     def is_empty(self, text):
         if not text.text():
             self.can_save_profile = False
-            text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #c32157; border-radius: 14px")
+            text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
         else:
             self.can_save_profile = True
             text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #000000; border-radius: 14px")
