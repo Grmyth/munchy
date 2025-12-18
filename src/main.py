@@ -85,7 +85,6 @@ class MainWindow(QMainWindow):
 
         if not self.local_profiles:
             self.new_profile()
-            self.cancel_new_save_button.hide()
 
         else:
             self.profiles()
@@ -293,7 +292,6 @@ class MainWindow(QMainWindow):
     def new_profile(self):
 
         self.tabs_widget.hide()
-        self.can_save_profile = False
 
         #Center column - Row 1 - Profile picture
         self.new_profile_picture = QLabel(self)
@@ -337,7 +335,6 @@ class MainWindow(QMainWindow):
         self.new_name_text.setAlignment(Qt.AlignCenter)
         self.new_name_text.setFont(QFont("Times New Roman", 20))
         self.new_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_name_text.textEdited.connect(lambda: self.is_empty(self.new_name_text))
 
         #Center column - Row 3 - D.O.B
             
@@ -351,7 +348,6 @@ class MainWindow(QMainWindow):
         self.new_day_text.setAlignment(Qt.AlignCenter)
         self.new_day_text.setFont(QFont("Times New Roman", 20))
         self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_day_text.textEdited.connect(lambda: self.is_empty(self.new_day_text))
 
         # -- element 2 --
         self.new_month_text = QLineEdit(self)
@@ -361,7 +357,6 @@ class MainWindow(QMainWindow):
         self.new_month_text.setAlignment(Qt.AlignCenter)
         self.new_month_text.setFont(QFont("Times New Roman", 20))
         self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_month_text.textEdited.connect(lambda: self.is_empty(self.new_month_text))
 
         # -- element 3 --
         self.new_year_text = QLineEdit(self)
@@ -371,7 +366,6 @@ class MainWindow(QMainWindow):
         self.new_year_text.setAlignment(Qt.AlignCenter)
         self.new_year_text.setFont(QFont("Times New Roman", 20))
         self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_year_text.textEdited.connect(lambda: self.is_empty(self.new_year_text))
 
         #Center column - Row 4 - Gender
             
@@ -435,7 +429,6 @@ class MainWindow(QMainWindow):
         self.new_height_text.setAlignment(Qt.AlignCenter)
         self.new_height_text.setFont(QFont("Times New Roman", 20))
         self.new_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_height_text.textEdited.connect(lambda: self.is_empty(self.new_height_text))
 
 
         #Center column - Row 6
@@ -446,7 +439,6 @@ class MainWindow(QMainWindow):
         self.new_weight_text.setAlignment(Qt.AlignCenter)
         self.new_weight_text.setFont(QFont("Times New Roman", 20))
         self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-        self.new_weight_text.textEdited.connect(lambda: self.is_empty(self.new_weight_text))
 
         #Center column - Row 7
         self.new_activity_combo = QComboBox(self)
@@ -496,8 +488,11 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
-        
-        self.cancel_new_save_button.clicked.connect(lambda: self.tab_switcher("Profiles"))
+        self.cancel_new_save_button.clicked.connect(self.cancel_new_save)
+        self.cancel_new_save_button.hide()
+
+        if self.local_profiles:
+            self.cancel_new_save_button.show()
 
         #element 2
         new_save_button = QPushButton("Save", self)
@@ -694,16 +689,27 @@ class MainWindow(QMainWindow):
                                 }
                             """)
 
+
+
+
+    def cancel_new_save(self):
+
+        self.tab_switcher("Profiles")
+        self.tabs_widget.show()
+
+
+
+
     def save_profile(self):
 
-        self.can_save_profile = True
+        can_save_profile = True
         
         #Check to see if the profile name exists
         name = self.new_name_text.text()
         for profiles in self.local_profiles:
             for value in profiles.values():
                 if value == self.new_name_text.text():
-                    self.can_save_profile = False
+                    can_save_profile = False
                     self.new_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                     self.new_name_text.setText("")
                     self.new_name_text.setPlaceholderText("Name already taken")
@@ -713,13 +719,13 @@ class MainWindow(QMainWindow):
             day = int(self.new_day_text.text())
 
             if day < 1 or day > 31:
-                self.can_save_profile = False
+                can_save_profile = False
                 self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_day_text.setText("")
                 self.new_day_text.setPlaceholderText("(1-31)")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_profile = False
             self.new_day_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_day_text.setText("")
             self.new_day_text.setPlaceholderText("(1-31)")
@@ -728,13 +734,13 @@ class MainWindow(QMainWindow):
             month = int(self.new_month_text.text())
 
             if month < 1 or month > 12:
-                self.can_save_profile = False
+                can_save_profile = False
                 self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_month_text.setText("")
                 self.new_month_text.setPlaceholderText("(1-12)")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_profile = False
             self.new_month_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_month_text.setText("")
             self.new_month_text.setPlaceholderText("(1-12)")
@@ -743,13 +749,13 @@ class MainWindow(QMainWindow):
             year = int(self.new_year_text.text())
 
             if year < 1900 or year > 2025:
-                self.can_save_profile = False
+                can_save_profile = False
                 self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_year_text.setText("")
                 self.new_year_text.setPlaceholderText("(1900-2025)")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_profile = False
             self.new_year_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_year_text.setText("")
             self.new_year_text.setPlaceholderText("(1900-2025)")
@@ -761,13 +767,13 @@ class MainWindow(QMainWindow):
             height = int(self.new_height_text.text())
 
             if height <= 0 or height > 400:
-                self.can_save_profile = False
+                can_save_profile = False
                 self.new_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_height_text.setText("")
                 self.new_height_text.setPlaceholderText("(0-400)")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_profile = False
             self.new_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_height_text.setText("")
             self.new_height_text.setPlaceholderText("(0-400)")
@@ -777,7 +783,7 @@ class MainWindow(QMainWindow):
             weight = float(self.new_weight_text.text())
 
             if weight < 1 or weight > 1000:
-                self.can_save_profile = False
+                can_save_profile = False
                 self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.new_weight_text.setText("")
                 self.new_weight_text.setPlaceholderText("(1-1000)")
@@ -785,7 +791,7 @@ class MainWindow(QMainWindow):
             weight = float(f"{weight:.1f}")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_profile = False
             self.new_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_weight_text.setText("")
             self.new_weight_text.setPlaceholderText("(1-1000)")
@@ -794,7 +800,7 @@ class MainWindow(QMainWindow):
         #Activity - does not require validation checking
         activity = self.new_activity_combo.currentIndex()
 
-        if self.can_save_profile == True:
+        if can_save_profile == True:
 
             dob = datetime.date(year, month, day)
 
@@ -1122,17 +1128,6 @@ class MainWindow(QMainWindow):
         self.profile_activity_combo.setCurrentIndex(self.local_profiles[0]['activity'])
         self.profile_activity_combo.hide()
 
-        #Men: (10 x weight in kg) + (6.25 x height in cm) - (5 x age in years) + 5
-        #Women: (10 x weight in kg) + (6.25 x height in cm) - (5 x age in years) - 161 
-
-        #kg's = lb's / 2.205
-
-        # ((feet * 6) + inches) * 2.54 = cm's
-
-
-
-        #856 -> 740 label widths
-
         self.current_TDEE = 0.00
 
         temp_weight = 10 * float(self.local_profiles[0]['weight'])
@@ -1334,7 +1329,15 @@ class MainWindow(QMainWindow):
 
     def delete_profile(self):
         self.local_profiles.pop(0)
-        self.tab_switcher("Profiles")
+
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+
+        if not self.local_profiles:
+            self.tab_switcher("New Profile")
+
+        else:
+            self.tab_switcher("Profiles")
 
 
 
@@ -1397,12 +1400,12 @@ class MainWindow(QMainWindow):
 
     def save_edit_profile(self):
 
-        self.can_save_profile = True
+        can_save_edit_profile = True
 
         #Check to see if the profile name exists
         name = self.profile_name_text.text()
         if not name:
-                self.can_save_profile = False
+                can_save_edit_profile = False
                 self.profile_name_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.profile_name_text.setText("")
                 self.profile_name_text.setPlaceholderText("Enter a name")
@@ -1412,13 +1415,13 @@ class MainWindow(QMainWindow):
             height = int(self.profile_height_text.text())
 
             if height <= 0 or height > 400:
-                self.can_save_profile = False
+                can_save_edit_profile = False
                 self.profile_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.profile_height_text.setText("")
                 self.profile_height_text.setPlaceholderText("(0-400)")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_edit_profile = False
             self.profile_height_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.profile_height_text.setText("")
             self.profile_height_text.setPlaceholderText("(0-400)")
@@ -1428,7 +1431,7 @@ class MainWindow(QMainWindow):
             weight = float(self.profile_weight_text.text())
 
             if weight < 1 or weight > 1000:
-                self.can_save_profile = False
+                can_save_edit_profile = False
                 self.profile_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
                 self.profile_weight_text.setText("")
                 self.profile_weight_text.setPlaceholderText("(1-1000)")
@@ -1436,7 +1439,7 @@ class MainWindow(QMainWindow):
             weight = float(f"{weight:.1f}")
 
         except ValueError:
-            self.can_save_profile = False
+            can_save_edit_profile = False
             self.profile_weight_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.profile_weight_text.setText("")
             self.profile_weight_text.setPlaceholderText("(1-1000)")
@@ -1445,7 +1448,7 @@ class MainWindow(QMainWindow):
         #Activity - does not require validation checking
         activity = self.profile_activity_combo.currentIndex()
 
-        if self.can_save_profile == True:
+        if can_save_edit_profile == True:
 
             self.local_profiles[0].pop('picture')
             self.local_profiles[0]['picture'] = self.picture_URL
@@ -1553,10 +1556,10 @@ class MainWindow(QMainWindow):
         x = 0
         y = 0
 
-        for key in self.local_consumables.keys():
+        for key in self.local_consumables:
 
-            button = key
-            button = QPushButton(key, self)
+            button = key['consumable']
+            button = QPushButton(key['consumable'], self)
             button.setFixedHeight(80)
             button.setFixedWidth(400)
             button.setFont(QFont("Times New Roman", 20))
@@ -1577,7 +1580,7 @@ class MainWindow(QMainWindow):
                                 }
                             """)           
 
-            button.clicked.connect(partial(self.consumable_variants, key)) 
+            button.clicked.connect(partial(self.consumable_variants, key['consumable'])) 
 
             consumables_row2_layout.addWidget(button, x, y)
 
@@ -1607,21 +1610,26 @@ class MainWindow(QMainWindow):
 
 
 
-    def add_consumable(self, name):
+    def add_consumable(self, consumable):
 
-        if not name:
+        if not consumable:
             self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
             self.new_consumable_text.setText("")
             self.new_consumable_text.setPlaceholderText("No consumable detected")
             return
 
-        if name in self.local_consumables:
-            self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
-            self.new_consumable_text.setText("")
-            self.new_consumable_text.setPlaceholderText("Consumable already added")
-            return
+        for key in self.local_consumables:
+            if consumable == key['consumable']:
+                self.new_consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.new_consumable_text.setText("")
+                self.new_consumable_text.setPlaceholderText("Consumable already added")
+                return
 
-        self.local_consumables[name] = {}
+        new_consumable = {
+                            "consumable": consumable,
+                            "variants": []
+        }
+        self.local_consumables.append(new_consumable)
 
         with open('./src/data.json', 'w') as f:
                 json.dump(self.data, f, indent=4)
@@ -1654,6 +1662,7 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
+        self.consumable_button.clicked.connect(lambda: self.tab_switcher("Consumables"))
 
         #Row 1 - element 2
         self.consumable_edit_button = QPushButton("Edit" , self)
@@ -1699,6 +1708,7 @@ class MainWindow(QMainWindow):
                                     border: 2px solid #841934; outline: none; 
                                 }
                             """)
+        self.delete_consumable_button.clicked.connect(lambda: self.delete_consumable_edit(consumable))
         self.delete_consumable_button.hide()
 
         #Row 1 - element 2 - edit mode
@@ -1756,83 +1766,89 @@ class MainWindow(QMainWindow):
                                 }
                             """)
 
-        self.save_consumable_button.clicked.connect(lambda: self.save_consumable_edit(consumable, self.consumable_text.text()))   
+        self.save_consumable_button.clicked.connect(lambda: self.save_consumable_edit(self.consumable_text.text()))   
         self.save_consumable_button.hide()
 
         #Row 3 - element 1
-        brand_text = QLineEdit(self)
-        brand_text.setFixedHeight(60)
-        brand_text.setFixedWidth(400)
-        brand_text.setPlaceholderText("Brand e.g. (Coke)")
-        brand_text.setAlignment(Qt.AlignCenter)
-        brand_text.setFont(QFont("Times New Roman", 20))
-        brand_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.brand_text = QLineEdit(self)
+        self.brand_text.setFixedHeight(60)
+        self.brand_text.setFixedWidth(400)
+        self.brand_text.setReadOnly(False)
+        self.brand_text.setPlaceholderText("Brand e.g. (Coke)")
+        self.brand_text.setAlignment(Qt.AlignCenter)
+        self.brand_text.setFont(QFont("Times New Roman", 20))
+        self.brand_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 3 - element 2
-        protein_text = QLineEdit(self)
-        protein_text.setFixedHeight(60)
-        protein_text.setFixedWidth(280)
-        protein_text.setPlaceholderText("Protein")
-        protein_text.setAlignment(Qt.AlignCenter)
-        protein_text.setFont(QFont("Times New Roman", 20))
-        protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.protein_text = QLineEdit(self)
+        self.protein_text.setFixedHeight(60)
+        self.protein_text.setFixedWidth(280)
+        self.protein_text.setReadOnly(False)
+        self.protein_text.setPlaceholderText("Protein (1)g")
+        self.protein_text.setAlignment(Qt.AlignCenter)
+        self.protein_text.setFont(QFont("Times New Roman", 20))
+        self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 3 - element 3
-        carbs_text = QLineEdit(self)
-        carbs_text.setFixedHeight(60)
-        carbs_text.setFixedWidth(280)
-        carbs_text.setPlaceholderText("Carbs")
-        carbs_text.setAlignment(Qt.AlignCenter)
-        carbs_text.setFont(QFont("Times New Roman", 20))
-        carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.carbs_text = QLineEdit(self)
+        self.carbs_text.setFixedHeight(60)
+        self.carbs_text.setFixedWidth(280)
+        self.carbs_text.setReadOnly(False)
+        self.carbs_text.setPlaceholderText("Carbs (8)g")
+        self.carbs_text.setAlignment(Qt.AlignCenter)
+        self.carbs_text.setFont(QFont("Times New Roman", 20))
+        self.carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 3 - element 4
-        fat_text = QLineEdit(self)
-        fat_text.setFixedHeight(60)
-        fat_text.setFixedWidth(280)
-        fat_text.setPlaceholderText("Fat")
-        fat_text.setAlignment(Qt.AlignCenter)
-        fat_text.setFont(QFont("Times New Roman", 20))
-        fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.fat_text = QLineEdit(self)
+        self.fat_text.setFixedHeight(60)
+        self.fat_text.setFixedWidth(280)
+        self.fat_text.setReadOnly(False)
+        self.fat_text.setPlaceholderText("Fat (2)g")
+        self.fat_text.setAlignment(Qt.AlignCenter)
+        self.fat_text.setFont(QFont("Times New Roman", 20))
+        self.fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 4 - element 1
-        variant_text = QLineEdit(self)
-        variant_text.setFixedHeight(60)
-        variant_text.setFixedWidth(400)
-        variant_text.setPlaceholderText("Variant e.g. (Vanilla)")
-        variant_text.setAlignment(Qt.AlignCenter)
-        variant_text.setFont(QFont("Times New Roman", 20))
-        variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.variant_text = QLineEdit(self)
+        self.variant_text.setFixedHeight(60)
+        self.variant_text.setFixedWidth(400)
+        self.variant_text.setReadOnly(False)
+        self.variant_text.setPlaceholderText("Variant (Vanilla - 1.5L)")
+        self.variant_text.setAlignment(Qt.AlignCenter)
+        self.variant_text.setFont(QFont("Times New Roman", 20))
+        self.variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 4 - element 2
-        servings_text = QLineEdit(self)
-        servings_text.setFixedHeight(60)
-        servings_text.setFixedWidth(280)
-        servings_text.setPlaceholderText("Servings e.g. (12) for eggs")
-        servings_text.setAlignment(Qt.AlignCenter)
-        servings_text.setFont(QFont("Times New Roman", 20))
-        servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.servings_text = QLineEdit(self)
+        self.servings_text.setFixedHeight(60)
+        self.servings_text.setFixedWidth(280)
+        self.servings_text.setReadOnly(False)
+        self.servings_text.setPlaceholderText("Servings (6)")
+        self.servings_text.setAlignment(Qt.AlignCenter)
+        self.servings_text.setFont(QFont("Times New Roman", 20))
+        self.servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 4 - element 3
-        price_text = QLineEdit(self)
-        price_text.setFixedHeight(60)
-        price_text.setFixedWidth(280)
-        price_text.setPlaceholderText("Price e.g. (2.99)")
-        price_text.setAlignment(Qt.AlignCenter)
-        price_text.setFont(QFont("Times New Roman", 20))
-        price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.price_text = QLineEdit(self)
+        self.price_text.setFixedHeight(60)
+        self.price_text.setFixedWidth(280)
+        self.price_text.setReadOnly(False)
+        self.price_text.setPlaceholderText("Price (2.99)")
+        self.price_text.setAlignment(Qt.AlignCenter)
+        self.price_text.setFont(QFont("Times New Roman", 20))
+        self.price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 4 - element 4
-        save_variant_button = QPushButton("Save" , self)
-        save_variant_button.setFixedHeight(60)
-        save_variant_button.setFixedWidth(160)
-        save_variant_button.setFont(QFont("Times New Roman", 20)) 
-        save_variant_button.setStyleSheet("""
+        self.add_variant_button = QPushButton("Add" , self)
+        self.add_variant_button.setFixedHeight(60)
+        self.add_variant_button.setFixedWidth(120)
+        self.add_variant_button.setFont(QFont("Times New Roman", 20)) 
+        self.add_variant_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
                                 }
-
                                 QPushButton:Hover {
                                     background-color: #1d1a19;
                                 }
@@ -1842,7 +1858,102 @@ class MainWindow(QMainWindow):
                                 QPushButton:focus {
                                     border: 2px solid black; outline: none; 
                                 }
-                            """)        
+                            """)   
+        self.add_variant_button.clicked.connect(lambda: self.add_variant(consumable))                
+
+        #Row 4 - element 4 - edit mode
+        self.delete_variant_button = QPushButton("Delete" , self)
+        self.delete_variant_button.setFixedHeight(60)
+        self.delete_variant_button.setFixedWidth(120)
+        self.delete_variant_button.setFont(QFont("Times New Roman", 20)) 
+        self.delete_variant_button.setStyleSheet("""
+                                QPushButton {
+                                    color: black; background-color: #971c3c; border: 2px solid #841934; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #b22150;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #971c3c;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid #841934; outline: none; 
+                                }
+                            """) 
+        self.delete_variant_button.clicked.connect(lambda: self.delete_variant(consumable, self.variant_text.text()))
+        self.delete_variant_button.hide()  
+
+        #Row 4 - element 5 - edit mode
+        self.edit_variant_button = QPushButton("Edit" , self)
+        self.edit_variant_button.setFixedHeight(60)
+        self.edit_variant_button.setFixedWidth(120)
+        self.edit_variant_button.setFont(QFont("Times New Roman", 20)) 
+        self.edit_variant_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """) 
+        self.edit_variant_button.clicked.connect(self.edit_variant)
+        self.edit_variant_button.hide() 
+
+        #Row 4 - element 4 - edit mode 2
+        self.cancel_edit_variant_button = QPushButton("Cancel" , self)
+        self.cancel_edit_variant_button.setFixedHeight(60)
+        self.cancel_edit_variant_button.setFixedWidth(120)
+        self.cancel_edit_variant_button.setFont(QFont("Times New Roman", 20)) 
+        self.cancel_edit_variant_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)   
+        current_variant = self.variant_text.text()
+        self.cancel_edit_variant_button.clicked.connect(self.cancel_edit_variant)
+        self.cancel_edit_variant_button.hide()
+
+        #Row 4 - element 5 - edit mode 2
+        self.save_edit_variant_button = QPushButton("Save" , self)
+        self.save_edit_variant_button.setFixedHeight(60)
+        self.save_edit_variant_button.setFixedWidth(120)
+        self.save_edit_variant_button.setFont(QFont("Times New Roman", 20)) 
+        self.save_edit_variant_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)     
+        self.save_edit_variant_button.clicked.connect(lambda: self.save_edit_variant(consumable, self.current_variant))
+        self.save_edit_variant_button.hide()
 
         variants_scroll = QScrollArea()
         variants_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -1892,39 +2003,42 @@ class MainWindow(QMainWindow):
         x = 0
         y = 0
 
-        for variant in self.local_consumables[consumable]:
+        for local_consumable in self.local_consumables:
 
-            button = variant
+            for variant in local_consumable['variants']:
 
-            button = QPushButton(variant, self)
-            button.setFixedHeight(80)
-            button.setFixedWidth(400)
-            button.setFont(QFont("Times New Roman", 20))
-            button.setStyleSheet("""
-                                QPushButton {
-                                    color: #645e59; background-color: #171514; border: 2px solid black; 
-                                    border-radius: 14px; text-align: center;
-                                }
+                current_button_variant = f"{variant['brand']}: {variant['variant']}"
 
-                                QPushButton:Hover {
-                                    background-color: #1d1a19;
-                                }
-                                QPushButton:pressed {
-                                    background-color: #1d1a19;
-                                        }
-                                QPushButton:focus {
-                                    border: 2px solid black; outline: none; 
-                                }
-                            """)            
+                button = QPushButton(current_button_variant, self)
+                button.setFixedHeight(80)
+                button.setFixedWidth(400)
+                button.setFont(QFont("Times New Roman", 20))
+                button.setStyleSheet("""
+                                    QPushButton {
+                                        color: #645e59; background-color: #171514; border: 2px solid black; 
+                                        border-radius: 14px; text-align: center;
+                                    }
 
-            variants_row2_layout.addWidget(button, x, y)
+                                    QPushButton:Hover {
+                                        background-color: #1d1a19;
+                                    }
+                                    QPushButton:pressed {
+                                        background-color: #1d1a19;
+                                            }
+                                    QPushButton:focus {
+                                        border: 2px solid black; outline: none; 
+                                    }
+                                """)
+                button.clicked.connect(partial(self.display_variant, variant['variant']))    
 
-            if y < 2:
-                y += 1
-            
-            else:
-                y = 0
-                x += 1
+                variants_row2_layout.addWidget(button, x, y)
+
+                if y < 2:
+                    y += 1
+                
+                else:
+                    y = 0
+                    x += 1
 
         variants_row2_widget.setLayout(variants_row2_layout)
 
@@ -1939,10 +2053,10 @@ class MainWindow(QMainWindow):
         variants_row3_layout.setSpacing(40)
 
         variants_row3_layout.addSpacing(20)
-        variants_row3_layout.addWidget(brand_text)
-        variants_row3_layout.addWidget(protein_text)
-        variants_row3_layout.addWidget(carbs_text)
-        variants_row3_layout.addWidget(fat_text)
+        variants_row3_layout.addWidget(self.brand_text)
+        variants_row3_layout.addWidget(self.protein_text)
+        variants_row3_layout.addWidget(self.carbs_text)
+        variants_row3_layout.addWidget(self.fat_text)
         variants_row3_layout.addSpacing(20)
 
         variants_row3_widget.setLayout(variants_row3_layout)
@@ -1957,12 +2071,14 @@ class MainWindow(QMainWindow):
         variants_row4_layout.setSpacing(40)
 
         variants_row4_layout.addSpacing(20)
-        variants_row4_layout.addWidget(variant_text)
-        variants_row4_layout.addWidget(servings_text)
-        variants_row4_layout.addWidget(price_text)
-        variants_row4_layout.addSpacing(60)
-        variants_row4_layout.addWidget(save_variant_button)
-        variants_row4_layout.addSpacing(60)
+        variants_row4_layout.addWidget(self.variant_text)
+        variants_row4_layout.addWidget(self.servings_text)
+        variants_row4_layout.addWidget(self.price_text)
+        variants_row4_layout.addWidget(self.add_variant_button)
+        variants_row4_layout.addWidget(self.delete_variant_button)
+        variants_row4_layout.addWidget(self.edit_variant_button)
+        variants_row4_layout.addWidget(self.cancel_edit_variant_button)
+        variants_row4_layout.addWidget(self.save_edit_variant_button)
         variants_row4_layout.addSpacing(20)
 
         variants_row4_widget.setLayout(variants_row4_layout)
@@ -1977,10 +2093,33 @@ class MainWindow(QMainWindow):
 
         self.variants_widget.setLayout(variants_layout)
 
+        self.central_layout.removeWidget(self.consumables_widget)
+        self.consumables_widget.setParent(None)
+        self.consumables_widget.deleteLater()
+
         self.central_layout.insertWidget(1, self.variants_widget)
 
         self.current_widget = "Variants"
         
+
+
+
+    def delete_consumable_edit(self, consumable):
+
+        index = 0
+
+        for consumables in self.local_consumables:
+
+            if consumables['consumable'] == consumable:
+                self.local_consumables.pop(index)
+
+            index += 1
+    
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+                
+        self.tab_switcher("Consumables")
+
 
 
 
@@ -1992,6 +2131,9 @@ class MainWindow(QMainWindow):
         self.cancel_consumable_edit_button.show()
         self.save_consumable_button.show()
 
+
+
+
     def cancel_consumable_edit(self):
         self.consumable_button.show()
         self.consumable_edit_button.show()
@@ -2000,9 +2142,22 @@ class MainWindow(QMainWindow):
         self.cancel_consumable_edit_button.hide()
         self.save_consumable_button.hide()
 
-    def save_consumable_edit(self, current, new):
-        if new:
-            self.local_consumables[new] = self.local_consumables.pop(current)
+
+
+
+    def save_consumable_edit(self, new):
+
+        can_save = True
+
+        for consumables in self.local_consumables:
+            if consumables['consumable'] == new:
+                can_save = False
+                self.consumable_text.setText("")
+                self.consumable_text.setPlaceholderText("Name taken")
+                self.consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+
+        if new and can_save:
+            self.local_consumables['consumable'] = new
 
             with open('./src/data.json', 'w') as f:
                 json.dump(self.data, f, indent=4)
@@ -2011,6 +2166,394 @@ class MainWindow(QMainWindow):
 
             self.cancel_consumable_edit()
 
+
+
+
+    def add_variant(self, current_consumable):
+
+        can_add_variant = True
+        
+        brand = self.brand_text.text()
+        variant = self.variant_text.text()
+
+        if not brand:
+            can_add_variant = False
+            self.brand_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.brand_text.setText("")
+            self.brand_text.setPlaceholderText("Enter Brand")
+
+        if not variant:
+            can_add_variant = False
+            self.variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.variant_text.setText("")
+            self.variant_text.setPlaceholderText("Enter Variant")
+
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['variant'] == variant:
+                    can_add_variant = False
+                    self.variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                    self.variant_text.setText("")
+                    self.variant_text.setPlaceholderText("Variant taken")
+                
+        try:
+            carbs = float(self.carbs_text.text())
+
+            if carbs < 0:
+                can_add_variant = False
+                self.carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.carbs_text.setText("")
+                self.carbs_text.setPlaceholderText("Cannot have less than 0")
+
+        except ValueError:
+            can_add_variant = False
+            self.carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.carbs_text.setText("")
+            self.carbs_text.setPlaceholderText("Must be a number")
+
+        try:
+            protein = float(self.protein_text.text())
+
+            if protein < 0:
+                can_add_variant = False
+                self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.protein_text.setText("")
+                self.protein_text.setPlaceholderText("Cannot have less than 0")
+
+        except ValueError:
+            can_add_variant = False
+            self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.protein_text.setText("")
+            self.protein_text.setPlaceholderText("Must be a number")
+
+        try:
+            fat = float(self.fat_text.text())
+
+            if fat < 0:
+                can_add_variant = False
+                self.fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.fat_text.setText("")
+                self.fat_text.setPlaceholderText("Cannot have less than 0")
+
+        except ValueError:
+            can_add_variant = False
+            self.fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.fat_text.setText("")
+            self.fat_text.setPlaceholderText("Must be a number")
+
+        try:
+            servings = int(self.servings_text.text())
+
+            if servings <= 0:
+                can_add_variant = False
+                self.servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.servings_text.setText("")
+                self.servings_text.setPlaceholderText("Must be more than 0")
+
+        except ValueError:
+            can_add_variant = False
+            self.servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.servings_text.setText("")
+            self.servings_text.setPlaceholderText("Whole numbers only")
+
+        try:
+            price = float(self.price_text.text())
+
+            if price <= 0:
+                can_add_variant = False
+                self.price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.price_text.setText("")
+                self.price_text.setPlaceholderText("Must be more than 0")
+
+        except ValueError:
+            can_add_variant = False
+            self.price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.price_text.setText("")
+            self.price_text.setPlaceholderText("Must be a number")
+
+        if can_add_variant == True:
+
+            temp_carbs = carbs * 4
+            temp_protein = protein * 4
+            temp_fat = fat * 9
+
+            calories = temp_carbs + temp_protein + temp_fat
+
+            variant_update = {
+                "brand": brand,
+                "variant": variant,
+                "carbs": carbs,
+                "protein": protein,
+                "fat": fat, 
+                "servings": servings, 
+                "price": price,
+                "calories": calories
+            }
+
+            index = 0
+
+            for consumables in self.local_consumables:
+                if consumables['consumable'] == current_consumable:
+
+                    self.local_consumables[index]['variants'].append(variant_update)
+
+                    with open('./src/data.json', 'w') as f:
+                        json.dump(self.data, f, indent=4)
+
+                    self.tab_switcher("Consumables")
+                    self.consumable_variants(current_consumable)                
+                
+                index += 1
+
+
+
+
+    def display_variant(self, variant):
+
+        self.add_variant_button.hide()
+        self.delete_variant_button.show()
+        self.edit_variant_button.show()
+
+        self.current_variant = variant
+        
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['variant'] == variant:
+
+                    if variants['calories']:
+                        calories = variants['calories'] / variants['servings']
+                    else:
+                        calories = 0
+
+                    variant_id = f"{variants['brand']}: {variants['variant']}"
+                    calories = int(calories)
+                    calories_label = f"Cals per serving: {calories}"
+
+                    self.brand_text.setText(variant_id)
+                    self.brand_text.setReadOnly(True)
+                    self.variant_text.setText(calories_label)
+                    self.variant_text.setReadOnly(True)
+                    self.carbs_text.setText(str(variants['carbs']))
+                    self.carbs_text.setReadOnly(True)
+                    self.protein_text.setText(str(variants['protein']))
+                    self.protein_text.setReadOnly(True)
+                    self.fat_text.setText(str(variants['fat']))
+                    self.fat_text.setReadOnly(True)
+                    self.servings_text.setText(str(variants['servings']))
+                    self.servings_text.setReadOnly(True)
+                    self.price_text.setText(str(variants['price']))
+                    self.price_text.setReadOnly(True)
+
+
+
+
+    def delete_variant(self, consumable, variant):
+
+        index_C = 0
+        index_V = 0
+
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['variant'] == variant:
+
+                    self.local_consumables[index_C]['variants'].pop(index_V)
+
+                    with open('./src/data.json', 'w') as f:
+                        json.dump(self.data, f, indent=4)
+
+                    self.tab_switcher("Consumables")
+                    self.consumable_variants(consumable)
+
+                index_V += 1
+
+            index_C += 1
+
+
+
+
+    def edit_variant(self):
+
+        self.brand_text.setReadOnly(False)
+        self.variant_text.setReadOnly(False)
+        self.carbs_text.setReadOnly(False)
+        self.protein_text.setReadOnly(False)
+        self.fat_text.setReadOnly(False)
+        self.servings_text.setReadOnly(False)
+        self.price_text.setReadOnly(False)
+        
+
+        self.delete_variant_button.hide()
+        self.edit_variant_button.hide()
+        self.cancel_edit_variant_button.show()
+        self.save_edit_variant_button.show()
+
+
+
+    def cancel_edit_variant(self):
+
+        self.delete_variant_button.show()
+        self.edit_variant_button.show()
+        self.cancel_edit_variant_button.hide()
+        self.save_edit_variant_button.hide()
+
+        variant = self.current_variant
+
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['variant'] == variant:
+                    self.brand_text.setText(variants['brand'])
+                    self.brand_text.setReadOnly(True)
+                    self.variant_text.setText(variants['variant'])
+                    self.variant_text.setReadOnly(True)
+                    self.carbs_text.setText(str(variants['carbs']))
+                    self.carbs_text.setReadOnly(True)
+                    self.protein_text.setText(str(variants['protein']))
+                    self.protein_text.setReadOnly(True)
+                    self.fat_text.setText(str(variants['fat']))
+                    self.fat_text.setReadOnly(True)
+                    self.servings_text.setText(str(variants['servings']))
+                    self.servings_text.setReadOnly(True)
+                    self.price_text.setText(str(variants['price']))
+                    self.price_text.setReadOnly(True)
+
+
+
+
+    def save_edit_variant(self, current_consumable, current_variant):
+        
+        can_save_variant = True
+        
+        brand = self.brand_text.text()
+        variant = self.variant_text.text()
+
+        if not brand:
+            can_save_variant = False
+            self.brand_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.brand_text.setText("")
+            self.brand_text.setPlaceholderText("Enter Brand")
+
+        if not variant:
+            can_save_variant = False
+            self.variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.variant_text.setText("")
+            self.variant_text.setPlaceholderText("Enter Variant")
+                
+        try:
+            carbs = float(self.carbs_text.text())
+
+            if carbs < 0:
+                can_save_variant = False
+                self.carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.carbs_text.setText("")
+                self.carbs_text.setPlaceholderText("Cannot have less than 0")
+
+        except ValueError:
+            can_save_variant = False
+            self.carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.carbs_text.setText("")
+            self.carbs_text.setPlaceholderText("Must be a number")
+
+        try:
+            protein = float(self.protein_text.text())
+
+            if protein < 0:
+                can_save_variant = False
+                self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.protein_text.setText("")
+                self.protein_text.setPlaceholderText("Cannot have less than 0")
+
+        except ValueError:
+            can_save_variant = False
+            self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.protein_text.setText("")
+            self.protein_text.setPlaceholderText("Must be a number")
+
+        try:
+            fat = float(self.fat_text.text())
+
+            if fat < 0:
+                can_save_variant = False
+                self.fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.fat_text.setText("")
+                self.fat_text.setPlaceholderText("Cannot have less than 0")
+
+        except ValueError:
+            can_save_variant = False
+            self.fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.fat_text.setText("")
+            self.fat_text.setPlaceholderText("Must be a number")
+
+        try:
+            servings = int(self.servings_text.text())
+
+            if servings <= 0:
+                can_save_variant = False
+                self.servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.servings_text.setText("")
+                self.servings_text.setPlaceholderText("Must be more than 0")
+
+        except ValueError:
+            can_save_variant = False
+            self.servings_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.servings_text.setText("")
+            self.servings_text.setPlaceholderText("Whole numbers only")
+
+        try:
+            price = float(self.price_text.text())
+
+            if price <= 0:
+                can_save_variant = False
+                self.price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.price_text.setText("")
+                self.price_text.setPlaceholderText("Must be more than 0")
+
+        except ValueError:
+            can_save_variant = False
+            self.price_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.price_text.setText("")
+            self.price_text.setPlaceholderText("Must be a number")
+
+        if can_save_variant == True:
+
+            temp_carbs = carbs * 4
+            temp_protein = protein * 4
+            temp_fat = fat * 9
+
+            calories = temp_carbs + temp_protein + temp_fat
+
+            variant_update = {
+                "brand": brand,
+                "variant": variant,
+                "carbs": carbs,
+                "protein": protein,
+                "fat": fat, 
+                "servings": servings, 
+                "price": price,
+                "calories": calories
+            }
+
+            index_C = 0
+            index_V = 0
+
+            for consumables in self.local_consumables:
+                for variants in consumables['variants']:
+                    if variants['variant'] == current_variant:
+
+                        self.local_consumables[index_C]['variants'][index_V] = variant_update
+
+                        with open('./src/data.json', 'w') as f:
+                            json.dump(self.data, f, indent=4)
+
+                        self.tab_switcher("Consumables")
+                        self.consumable_variants(current_consumable)  
+
+                    index_V += 1
+
+                index_C += 1
+
+
+            
+# carbs/protein * 4 / fat * 9
     def recipes(self):
         pass
 
@@ -2061,8 +2604,6 @@ class MainWindow(QMainWindow):
                 self.profiles()
             case "Consumables":
                 self.consumables()
-            case "Variants":
-                self.consumable_variants()
 
         
     
@@ -2169,18 +2710,6 @@ class MainWindow(QMainWindow):
 
         if birth_day > current_day:
             self.current_age -= 1
-
-        
-
-
-    #Check if the current text field is empty and show error color on border - only after typing and removing input
-    def is_empty(self, text):
-        if not text.text():
-            self.can_save_profile = False
-            text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
-        else:
-            self.can_save_profile = True
-            text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #000000; border-radius: 14px")
 
 def main():
     app = QApplication(sys.argv)
