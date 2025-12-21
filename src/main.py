@@ -60,10 +60,10 @@ class MainWindow(QMainWindow):
             self.data = json.load(json_file)
             self.local_profiles = self.data['profiles']
             self.local_consumables = self.data['consumables']
-
-        #Creating a local Profiles instance with a .profile for all stored profiles
+            self.local_recipes = self.data['recipes']
 
            
+
 
     def initUI(self):
 
@@ -220,6 +220,7 @@ class MainWindow(QMainWindow):
                                     background-color: #171514;
                                 }
                             """)
+        self.recipes_tab.clicked.connect(lambda: self.tab_switcher("Recipes"))
 
         self.pantry_tab = QPushButton("Pantry", self)
         self.pantry_tab.setFixedHeight(106)
@@ -1774,37 +1775,37 @@ class MainWindow(QMainWindow):
         self.brand_text.setFixedHeight(60)
         self.brand_text.setFixedWidth(400)
         self.brand_text.setReadOnly(False)
-        self.brand_text.setPlaceholderText("Brand e.g. (Coke)")
+        self.brand_text.setPlaceholderText("Brand (Coke)")
         self.brand_text.setAlignment(Qt.AlignCenter)
         self.brand_text.setFont(QFont("Times New Roman", 20))
         self.brand_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 3 - element 2
-        self.protein_text = QLineEdit(self)
-        self.protein_text.setFixedHeight(60)
-        self.protein_text.setFixedWidth(280)
-        self.protein_text.setReadOnly(False)
-        self.protein_text.setPlaceholderText("Protein (1)g")
-        self.protein_text.setAlignment(Qt.AlignCenter)
-        self.protein_text.setFont(QFont("Times New Roman", 20))
-        self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
-
-        #Row 3 - element 3
         self.carbs_text = QLineEdit(self)
         self.carbs_text.setFixedHeight(60)
         self.carbs_text.setFixedWidth(280)
         self.carbs_text.setReadOnly(False)
-        self.carbs_text.setPlaceholderText("Carbs (8)g")
+        self.carbs_text.setPlaceholderText("Carbs (#)g per serivng")
         self.carbs_text.setAlignment(Qt.AlignCenter)
         self.carbs_text.setFont(QFont("Times New Roman", 20))
         self.carbs_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        #Row 3 - element 3
+        self.protein_text = QLineEdit(self)
+        self.protein_text.setFixedHeight(60)
+        self.protein_text.setFixedWidth(280)
+        self.protein_text.setReadOnly(False)
+        self.protein_text.setPlaceholderText("Protein (#)g per serivng")
+        self.protein_text.setAlignment(Qt.AlignCenter)
+        self.protein_text.setFont(QFont("Times New Roman", 20))
+        self.protein_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
 
         #Row 3 - element 4
         self.fat_text = QLineEdit(self)
         self.fat_text.setFixedHeight(60)
         self.fat_text.setFixedWidth(280)
         self.fat_text.setReadOnly(False)
-        self.fat_text.setPlaceholderText("Fat (2)g")
+        self.fat_text.setPlaceholderText("Fat (#)g per serivng")
         self.fat_text.setAlignment(Qt.AlignCenter)
         self.fat_text.setFont(QFont("Times New Roman", 20))
         self.fat_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
@@ -2054,8 +2055,8 @@ class MainWindow(QMainWindow):
 
         variants_row3_layout.addSpacing(20)
         variants_row3_layout.addWidget(self.brand_text)
-        variants_row3_layout.addWidget(self.protein_text)
         variants_row3_layout.addWidget(self.carbs_text)
+        variants_row3_layout.addWidget(self.protein_text)
         variants_row3_layout.addWidget(self.fat_text)
         variants_row3_layout.addSpacing(20)
 
@@ -2320,28 +2321,24 @@ class MainWindow(QMainWindow):
             for variants in consumables['variants']:
                 if variants['variant'] == variant:
 
-                    if variants['calories']:
-                        calories = variants['calories'] / variants['servings']
-                    else:
-                        calories = 0
-
                     variant_id = f"{variants['brand']}: {variants['variant']}"
-                    calories = int(calories)
+
+                    calories = float(f"{variants['calories']:.2f}")
                     calories_label = f"Cals per serving: {calories}"
 
                     self.brand_text.setText(variant_id)
                     self.brand_text.setReadOnly(True)
                     self.variant_text.setText(calories_label)
                     self.variant_text.setReadOnly(True)
-                    self.carbs_text.setText(str(variants['carbs']))
+                    self.carbs_text.setText("Carbs: " + str(variants['carbs']))
                     self.carbs_text.setReadOnly(True)
-                    self.protein_text.setText(str(variants['protein']))
+                    self.protein_text.setText("Protein: " + str(variants['protein']))
                     self.protein_text.setReadOnly(True)
-                    self.fat_text.setText(str(variants['fat']))
+                    self.fat_text.setText("Fat: " + str(variants['fat']))
                     self.fat_text.setReadOnly(True)
                     self.servings_text.setText(str(variants['servings']))
                     self.servings_text.setReadOnly(True)
-                    self.price_text.setText(str(variants['price']))
+                    self.price_text.setText("$" + str(variants['price']))
                     self.price_text.setReadOnly(True)
 
 
@@ -2553,11 +2550,412 @@ class MainWindow(QMainWindow):
 
 
             
-# carbs/protein * 4 / fat * 9
+
     def recipes(self):
-        pass
+        
+        self.new_recipe_text = QLineEdit(self)
+        self.new_recipe_text.setPlaceholderText("Recipe")
+        self.new_recipe_text.setFixedHeight(60)
+        self.new_recipe_text.setFixedWidth(400)
+        self.new_recipe_text.setAlignment(Qt.AlignCenter)
+        self.new_recipe_text.setFont(QFont("Times New Roman", 20))
+        self.new_recipe_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        add_recipe_button = QPushButton("Add", self)
+        add_recipe_button.setFixedHeight(60)
+        add_recipe_button.setFixedWidth(160)
+        add_recipe_button.setFont(QFont("Times New Roman", 20))
+        add_recipe_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+
+        add_recipe_button.clicked.connect(lambda: self.add_recipe(self.new_recipe_text.text()))
+        
+        recipes_scroll = QScrollArea()
+        recipes_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        recipes_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        self.recipes_widget = QWidget()
+        self.recipes_widget.setFixedHeight(944)
+        self.recipes_widget.setFixedWidth(1400)
+
+        recipes_layout = QVBoxLayout()
+        recipes_layout.setContentsMargins(0, 0, 0, 0)
+        recipes_layout.setSpacing(0)
+
+        recipes_row1_widget = QWidget()
+        recipes_row1_widget.setFixedHeight(60)
+
+        recipes_row1_layout = QHBoxLayout()
+        recipes_row1_layout.setContentsMargins(0, 0, 0, 0)
+        recipes_row1_layout.setSpacing(40)
+
+        recipes_row1_layout.addStretch()
+        recipes_row1_layout.addWidget(self.new_recipe_text)
+        recipes_row1_layout.addWidget(add_recipe_button)
+        recipes_row1_layout.addStretch()
+
+        recipes_row1_widget.setLayout(recipes_row1_layout)
+
+        row1_row2_spacer = QWidget()
+        row1_row2_spacer.setStyleSheet("background-color: #171514")
+        row1_row2_spacer.setFixedHeight(2)
+        
+
+        recipes_row2_widget = QWidget()
+
+        recipes_row2_layout = QGridLayout()
+        recipes_row2_layout.setContentsMargins(60, 20, 60, 20)
+        recipes_row2_layout.setSpacing(40)
+        
+        
+
+        x = 0
+        y = 0
+
+        for key in self.local_recipes:
+
+            button = key['recipe']
+            button = QPushButton(key['recipe'], self)
+            button.setFixedHeight(80)
+            button.setFixedWidth(400)
+            button.setFont(QFont("Times New Roman", 20))
+            button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)           
+
+            #button.clicked.connect(partial(self.recipe_ingrediants, key['recipe'])) 
+
+            recipes_row2_layout.addWidget(button, x, y)
+
+            if y < 2:
+                y += 1
+            
+            else:
+                y = 0
+                x += 1
+
+        recipes_row2_widget.setLayout(recipes_row2_layout)
+
+        recipes_scroll.setWidget(recipes_row2_widget)
+
+        recipes_layout.addSpacing(40)
+        recipes_layout.addWidget(recipes_row1_widget)
+        recipes_layout.addSpacing(40)
+        recipes_layout.addWidget(row1_row2_spacer)
+        recipes_layout.addWidget(recipes_scroll)
+
+        self.recipes_widget.setLayout(recipes_layout)
+
+        self.central_layout.insertWidget(1, self.recipes_widget)
+
+        self.current_widget = "Recipes"
 
 
+
+
+    def add_recipe(self, recipe):
+
+        if not recipe:
+            self.new_recipe_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+            self.new_recipe_text.setText("")
+            self.new_recipe_text.setPlaceholderText("No recipe detected")
+            return
+
+        for key in self.local_recipes:
+            if recipe == key['recipe']:
+                self.new_recipe_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                self.new_recipe_text.setText("")
+                self.new_recipe_text.setPlaceholderText("Recipe already added")
+                return
+
+        new_recipe = {
+                            "recipe": recipe,
+                            "Ingrediants": []
+        }
+
+        self.local_recipes.append(new_recipe)
+
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+
+        self.tab_switcher("Recipes")
+
+
+
+
+    def recipe_ingrediants(self, recipe):
+        
+        #Row 1 - element 1
+        self.recipe_button = QPushButton(recipe , self)
+        self.recipe_button.setFixedHeight(60)
+        self.recipe_button.setFixedWidth(400)
+        self.recipe_button.setFont(QFont("Times New Roman", 20)) 
+        self.recipe_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        self.recipe_button.clicked.connect(lambda: self.tab_switcher("Recipes"))
+
+        #Row 1 - element 2
+        self.recipe_edit_button = QPushButton("Edit" , self)
+        self.recipe_edit_button.setFixedHeight(60)
+        self.recipe_edit_button.setFixedWidth(160)
+        self.recipe_edit_button.setFont(QFont("Times New Roman", 20)) 
+        self.recipe_edit_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        #self.recipe_edit_button.clicked.connect(self.consumable_edit)    
+
+        #Row 1 - element 1 - edit mode
+        self.delete_recipe_button = QPushButton("Delete" , self)
+        self.delete_recipe_button.setFixedHeight(60)
+        self.delete_recipe_button.setFixedWidth(160)
+        self.delete_recipe_button.setFont(QFont("Times New Roman", 20)) 
+        self.delete_recipe_button.setStyleSheet("""
+                                QPushButton {
+                                    color: black; background-color: #971c3c; border: 2px solid #841934; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #b22150;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #971c3c;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid #841934; outline: none; 
+                                }
+                            """)
+        #self.delete_recipe_button.clicked.connect(lambda: self.delete_consumable_edit(recipe))
+        self.delete_recipe_button.hide()
+
+        #Row 1 - element 2 - edit mode
+        self.recipe_text = QLineEdit(recipe, self)
+        self.recipe_text.setFixedHeight(60)
+        self.recipe_text.setFixedWidth(400)
+        self.recipe_text.setAlignment(Qt.AlignCenter)
+        self.recipe_text.setFont(QFont("Times New Roman", 20))
+        self.recipe_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+        self.recipe_text.hide()
+
+        #Row 1 - element 3 - edit mode
+        self.cancel_recipe_edit_button = QPushButton("Cancel" , self)
+        self.cancel_recipe_edit_button.setFixedHeight(60)
+        self.cancel_recipe_edit_button.setFixedWidth(160)
+        self.cancel_recipe_edit_button.setFont(QFont("Times New Roman", 20)) 
+        self.cancel_recipe_edit_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+        #self.cancel_recipe_edit_button.clicked.connect(self.cancel_consumable_edit)                    
+        self.cancel_recipe_edit_button.hide()
+
+        #Row 1 - element 4 - edit mode
+        self.save_recipe_button = QPushButton("Save" , self)
+        self.save_recipe_button.setFixedHeight(60)
+        self.save_recipe_button.setFixedWidth(160)
+        self.save_recipe_button.setFont(QFont("Times New Roman", 20)) 
+        self.save_recipe_button.setStyleSheet("""
+                                QPushButton {
+                                    color: #645e59; background-color: #171514; border: 2px solid black; 
+                                    border-radius: 14px; text-align: center;
+                                }
+
+                                QPushButton:Hover {
+                                    background-color: #1d1a19;
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1d1a19;
+                                        }
+                                QPushButton:focus {
+                                    border: 2px solid black; outline: none; 
+                                }
+                            """)
+
+        #self.save_recipe_button.clicked.connect(lambda: self.save_consumable_edit(self.consumable_text.text()))   
+        self.save_recipe_button.hide()
+
+        ingrediants_scroll = QScrollArea()
+        ingrediants_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        ingrediants_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        ingrediants_scroll2 = QScrollArea()
+        ingrediants_scroll2.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        ingrediants_scroll2.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        self.ingrediants_widget = QWidget()
+        self.ingrediants_widget.setFixedHeight(944)
+        self.ingrediants_widget.setFixedWidth(1400)
+
+        ingrediants_layout = QVBoxLayout()
+        ingrediants_layout.setContentsMargins(0, 0, 0, 0)
+        ingrediants_layout.setSpacing(0)
+
+        #Row 1 widget/layout
+        ingrediants_row1_widget = QWidget()
+        ingrediants_row1_widget.setFixedHeight(100)
+
+        ingrediants_row1_layout = QHBoxLayout()
+        ingrediants_row1_layout.setContentsMargins(0, 0, 0, 0)
+        ingrediants_row1_layout.setSpacing(40)
+        
+        ingrediants_row1_layout.addStretch()
+        ingrediants_row1_layout.addWidget(self.consumable_button)
+        ingrediants_row1_layout.addWidget(self.consumable_edit_button)
+        ingrediants_row1_layout.addWidget(self.delete_consumable_button)
+        ingrediants_row1_layout.addWidget(self.consumable_text)
+        ingrediants_row1_layout.addWidget(self.cancel_consumable_edit_button)
+        ingrediants_row1_layout.addWidget(self.save_consumable_button)
+        ingrediants_row1_layout.addStretch()
+
+        ingrediants_row1_widget.setLayout(ingrediants_row1_layout)
+
+        spacer = QWidget()
+        spacer.setStyleSheet("background-color: #171514")
+        spacer.setFixedHeight(2)
+
+        spacer2 = QWidget()
+        spacer2.setStyleSheet("background-color: #171514")
+        spacer2.setFixedHeight(2)
+
+        ingrediants_row2_widget = QWidget()
+
+        ingrediants_row2_layout = QHBoxLayout()
+        ingrediants_row2_layout.setContentsMargins(20, 20, 20, 20)
+        ingrediants_row2_layout.setSpacing(0)
+
+        ingrediants_row2_col1_widget = QWidget()
+        ingrediants_row2_col1_widget.setFixedWidth(640)
+
+        ingrediants_row2_col1_layout = QVBoxLayout()
+        ingrediants_row2_col1_layout.setContentsMargins(20, 20, 20, 20)
+        ingrediants_row2_col1_layout.setSpacing(20)
+
+        ingrediants_row2_col1_widget.setLayout(ingrediants_row2_col1_layout)
+
+        ingrediants_scroll.setWidget(ingrediants_row2_col1_widget)
+
+
+
+        ingrediants_row2_col2_widget = QWidget()
+        ingrediants_row2_col2_widget.setFixedWidth(640)
+
+        ingrediants_row2_col2_layout = QGridLayout()
+        ingrediants_row2_col2_layout.setContentsMargins(20, 20, 20, 20)
+        ingrediants_row2_col2_layout.setSpacing(20)
+
+        ingrediants_row2_col2_widget.setLayout(ingrediants_row2_col2_layout)
+
+        ingrediants_scroll2.setWidget(ingrediants_row2_col2_widget)
+
+
+        ingrediants_row2_layout.addWidget(ingrediants_scroll)
+        ingrediants_row2_layout.addSpacing(80)
+        ingrediants_row2_layout.addWidget(ingrediants_scroll2)
+
+        ingrediants_row2_widget.setLayout(ingrediants_row2_layout)
+
+        
+
+        #Row 3 widget/layout
+        ingrediants_row3_widget = QWidget()
+        ingrediants_row3_widget.setFixedHeight(100)
+
+        ingrediants_row3_layout = QHBoxLayout()
+        ingrediants_row3_layout.setContentsMargins(0, 0, 0, 0)
+        ingrediants_row3_layout.setSpacing(40)
+
+        ingrediants_row3_layout.addSpacing(20)
+        ingrediants_row3_layout.addWidget(self.brand_text)
+        ingrediants_row3_layout.addWidget(self.carbs_text)
+        ingrediants_row3_layout.addWidget(self.protein_text)
+        ingrediants_row3_layout.addWidget(self.fat_text)
+        ingrediants_row3_layout.addSpacing(20)
+
+        ingrediants_row3_widget.setLayout(ingrediants_row3_layout)
+
+
+        #Set variants layout
+        ingrediants_layout.addWidget(ingrediants_row1_widget)
+        ingrediants_layout.addWidget(spacer)
+        ingrediants_layout.addWidget(ingrediants_row2_widget)
+        ingrediants_layout.addWidget(spacer2)
+        ingrediants_layout.addWidget(ingrediants_row3_widget)
+
+        self.ingrediants_widget.setLayout(ingrediants_layout)
+
+        self.central_layout.removeWidget(self.recipes_widget)
+        self.recipes_widget.setParent(None)
+        self.recipes_widget.deleteLater()
+
+        self.central_layout.insertWidget(1, self.ingrediants_widget)
+
+        self.current_widget = "Ingrediants"
 
 
     def pantry(self):
@@ -2596,6 +2994,14 @@ class MainWindow(QMainWindow):
                 self.central_layout.removeWidget(self.variants_widget)
                 self.variants_widget.setParent(None)
                 self.variants_widget.deleteLater()
+            case "Recipes":
+                self.central_layout.removeWidget(self.recipes_widget)
+                self.recipes_widget.setParent(None)
+                self.recipes_widget.deleteLater()
+            case "Ingrediants":
+                self.central_layout.removeWidget(self.ingrediants_widget)
+                self.ingrediants_widget.setParent(None)
+                self.ingrediants_widget.deleteLater()
 
         match new_widget:
             case "New Profile":
@@ -2604,6 +3010,8 @@ class MainWindow(QMainWindow):
                 self.profiles()
             case "Consumables":
                 self.consumables()
+            case "Recipes":
+                self.recipes()
 
         
     
