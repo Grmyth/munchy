@@ -2004,42 +2004,43 @@ class MainWindow(QMainWindow):
         x = 0
         y = 0
 
-        for local_consumable in self.local_consumables:
+        for consumables in self.local_consumables:
 
-            for variant in local_consumable['variants']:
+            if consumables['consumable'] == consumable:
+                for variant in consumables['variants']:
 
-                current_button_variant = f"{variant['brand']}: {variant['variant']}"
+                    current_button_variant = f"{variant['brand']}: {variant['variant']}"
 
-                button = QPushButton(current_button_variant, self)
-                button.setFixedHeight(80)
-                button.setFixedWidth(400)
-                button.setFont(QFont("Times New Roman", 20))
-                button.setStyleSheet("""
-                                    QPushButton {
-                                        color: #645e59; background-color: #171514; border: 2px solid black; 
-                                        border-radius: 14px; text-align: center;
-                                    }
+                    button = QPushButton(current_button_variant, self)
+                    button.setFixedHeight(80)
+                    button.setFixedWidth(400)
+                    button.setFont(QFont("Times New Roman", 20))
+                    button.setStyleSheet("""
+                                        QPushButton {
+                                            color: #645e59; background-color: #171514; border: 2px solid black; 
+                                            border-radius: 14px; text-align: center;
+                                        }
 
-                                    QPushButton:Hover {
-                                        background-color: #1d1a19;
-                                    }
-                                    QPushButton:pressed {
-                                        background-color: #1d1a19;
-                                            }
-                                    QPushButton:focus {
-                                        border: 2px solid black; outline: none; 
-                                    }
-                                """)
-                button.clicked.connect(partial(self.display_variant, variant['variant']))    
+                                        QPushButton:Hover {
+                                            background-color: #1d1a19;
+                                        }
+                                        QPushButton:pressed {
+                                            background-color: #1d1a19;
+                                                }
+                                        QPushButton:focus {
+                                            border: 2px solid black; outline: none; 
+                                        }
+                                    """)
+                    button.clicked.connect(partial(self.display_variant, variant['variant']))    
 
-                variants_row2_layout.addWidget(button, x, y)
+                    variants_row2_layout.addWidget(button, x, y)
 
-                if y < 2:
-                    y += 1
-                
-                else:
-                    y = 0
-                    x += 1
+                    if y < 2:
+                        y += 1
+                    
+                    else:
+                        y = 0
+                        x += 1
 
         variants_row2_widget.setLayout(variants_row2_layout)
 
@@ -2650,7 +2651,7 @@ class MainWindow(QMainWindow):
                                 }
                             """)           
 
-            #button.clicked.connect(partial(self.recipe_ingrediants, key['recipe'])) 
+            button.clicked.connect(partial(self.recipe_ingrediants, key['recipe'])) 
 
             recipes_row2_layout.addWidget(button, x, y)
 
@@ -2697,7 +2698,7 @@ class MainWindow(QMainWindow):
 
         new_recipe = {
                             "recipe": recipe,
-                            "Ingrediants": []
+                            "ingrediants": []
         }
 
         self.local_recipes.append(new_recipe)
@@ -2713,7 +2714,7 @@ class MainWindow(QMainWindow):
     def recipe_ingrediants(self, recipe):
         
         #Row 1 - element 1
-        self.recipe_button = QPushButton(recipe , self)
+        self.recipe_button = QPushButton(recipe, self)
         self.recipe_button.setFixedHeight(60)
         self.recipe_button.setFixedWidth(400)
         self.recipe_button.setFont(QFont("Times New Roman", 20)) 
@@ -2865,12 +2866,12 @@ class MainWindow(QMainWindow):
         ingrediants_row1_layout.setSpacing(40)
         
         ingrediants_row1_layout.addStretch()
-        ingrediants_row1_layout.addWidget(self.consumable_button)
-        ingrediants_row1_layout.addWidget(self.consumable_edit_button)
-        ingrediants_row1_layout.addWidget(self.delete_consumable_button)
-        ingrediants_row1_layout.addWidget(self.consumable_text)
-        ingrediants_row1_layout.addWidget(self.cancel_consumable_edit_button)
-        ingrediants_row1_layout.addWidget(self.save_consumable_button)
+        ingrediants_row1_layout.addWidget(self.recipe_button)
+        ingrediants_row1_layout.addWidget(self.recipe_edit_button)
+        ingrediants_row1_layout.addWidget(self.delete_recipe_button)
+        ingrediants_row1_layout.addWidget(self.recipe_text)
+        ingrediants_row1_layout.addWidget(self.cancel_recipe_edit_button)
+        ingrediants_row1_layout.addWidget(self.save_recipe_button)
         ingrediants_row1_layout.addStretch()
 
         ingrediants_row1_widget.setLayout(ingrediants_row1_layout)
@@ -2886,7 +2887,7 @@ class MainWindow(QMainWindow):
         ingrediants_row2_widget = QWidget()
 
         ingrediants_row2_layout = QHBoxLayout()
-        ingrediants_row2_layout.setContentsMargins(20, 20, 20, 20)
+        ingrediants_row2_layout.setContentsMargins(0, 0, 0, 0)
         ingrediants_row2_layout.setSpacing(0)
 
         ingrediants_row2_col1_widget = QWidget()
@@ -2896,18 +2897,136 @@ class MainWindow(QMainWindow):
         ingrediants_row2_col1_layout.setContentsMargins(20, 20, 20, 20)
         ingrediants_row2_col1_layout.setSpacing(20)
 
-        ingrediants_row2_col1_widget.setLayout(ingrediants_row2_col1_layout)
-
-        ingrediants_scroll.setWidget(ingrediants_row2_col1_widget)
-
-
-
         ingrediants_row2_col2_widget = QWidget()
         ingrediants_row2_col2_widget.setFixedWidth(640)
 
         ingrediants_row2_col2_layout = QGridLayout()
         ingrediants_row2_col2_layout.setContentsMargins(20, 20, 20, 20)
-        ingrediants_row2_col2_layout.setSpacing(20)
+        ingrediants_row2_col2_layout.setSpacing(20)        
+
+        row = 0
+
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                is_ingredriant = False
+                for recipes in self.local_recipes:
+                    if recipes['recipe'] == recipe:
+                        for ingrediants in recipes['ingrediants']:
+                            if variants['variant'] == ingrediants['ingrediant']:
+                                is_ingredriant = True
+                                
+
+                if not is_ingredriant:
+                    current_button_variant = f"{variants['brand']}: {variants['variant']}"
+
+                    variant_button = QPushButton(current_button_variant, self)
+                    variant_button.setFixedHeight(80)
+                    variant_button.setFont(QFont("Times New Roman", 20))
+                    variant_button.setStyleSheet("""
+                                        QPushButton {
+                                            color: #645e59; background-color: #171514; border: 2px solid black; 
+                                            border-radius: 14px; text-align: center;
+                                        }
+
+                                        QPushButton:Hover {
+                                            background-color: #1d1a19;
+                                        }
+                                        QPushButton:pressed {
+                                            background-color: #1d1a19;
+                                                }
+                                        QPushButton:focus {
+                                            border: 2px solid black; outline: none; 
+                                        }
+                                    """)
+                    variant_button.clicked.connect(partial(self.add_ingrediant, recipe, variants['variant']))    
+
+                    ingrediants_row2_col1_layout.addWidget(variant_button)
+
+                else:
+
+                    for recipes in self.local_recipes:
+                        if recipes['recipe'] == recipe:
+                            for ingrediants in recipes['ingrediants']:
+                                if variants['variant'] == ingrediants['ingrediant']:
+
+                                    quantity = ingrediants['quantity']
+
+                                    #Element 1
+                                    current_ingrediant_text = f"{variants['brand']}: {variants['variant']}"
+
+                                    ingrediant_text = QLabel(current_ingrediant_text, self)
+                                    ingrediant_text.setFixedHeight(80)
+                                    ingrediant_text.setAlignment(Qt.AlignCenter)
+                                    ingrediant_text.setFont(QFont("Times New Roman", 20))
+                                    ingrediant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+                                    ingrediants_row2_col2_layout.addWidget(ingrediant_text, row, 0)
+
+                                    #Element 3
+                                    quantity_text = QLabel(str(quantity), self)
+                                    quantity_text.setFixedHeight(40)
+                                    quantity_text.setFixedWidth(60)
+                                    quantity_text.setAlignment(Qt.AlignCenter)
+                                    quantity_text.setFont(QFont("Times New Roman", 20))
+                                    quantity_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+                                    #Element 2
+                                    minus_quantity_button = QPushButton("<", self)
+                                    minus_quantity_button.setFixedHeight(60)
+                                    minus_quantity_button.setFixedWidth(60)
+                                    minus_quantity_button.setFont(QFont("Times New Roman", 20))
+                                    minus_quantity_button.setStyleSheet("""
+                                                        QPushButton {
+                                                            color: #645e59; background-color: #171514; border: 2px solid black; 
+                                                            border-radius: 14px; text-align: center;
+                                                        }
+
+                                                        QPushButton:Hover {
+                                                            background-color: #1d1a19;
+                                                        }
+                                                        QPushButton:pressed {
+                                                            background-color: #1d1a19;
+                                                                }
+                                                        QPushButton:focus {
+                                                            border: 2px solid black; outline: none; 
+                                                        }
+                                                    """)
+                                    minus_quantity_button.clicked.connect(partial(self.minus_ingrediant, recipe, variants['variant'], quantity_text)) 
+
+                                    #Element 4
+                                    plus_quantity_button = QPushButton(">", self)
+                                    plus_quantity_button.setFixedHeight(60)
+                                    plus_quantity_button.setFixedWidth(60)
+                                    plus_quantity_button.setFont(QFont("Times New Roman", 20))
+                                    plus_quantity_button.setStyleSheet("""
+                                                        QPushButton {
+                                                            color: #645e59; background-color: #171514; border: 2px solid black; 
+                                                            border-radius: 14px; text-align: center;
+                                                        }
+
+                                                        QPushButton:Hover {
+                                                            background-color: #1d1a19;
+                                                        }
+                                                        QPushButton:pressed {
+                                                            background-color: #1d1a19;
+                                                                }
+                                                        QPushButton:focus {
+                                                            border: 2px solid black; outline: none; 
+                                                        }
+                                                    """)
+                                    plus_quantity_button.clicked.connect(partial(self.plus_ingrediant, recipe, variants['variant'], quantity_text)) 
+
+                                    ingrediants_row2_col2_layout.addWidget(minus_quantity_button, row, 1)
+                                    ingrediants_row2_col2_layout.addWidget(quantity_text, row, 2)
+                                    ingrediants_row2_col2_layout.addWidget(plus_quantity_button, row, 3)
+
+                                    row += 1
+
+
+
+        ingrediants_row2_col1_widget.setLayout(ingrediants_row2_col1_layout)
+
+        ingrediants_scroll.setWidget(ingrediants_row2_col1_widget)
 
         ingrediants_row2_col2_widget.setLayout(ingrediants_row2_col2_layout)
 
@@ -2931,21 +3050,21 @@ class MainWindow(QMainWindow):
         ingrediants_row3_layout.setSpacing(40)
 
         ingrediants_row3_layout.addSpacing(20)
-        ingrediants_row3_layout.addWidget(self.brand_text)
-        ingrediants_row3_layout.addWidget(self.carbs_text)
-        ingrediants_row3_layout.addWidget(self.protein_text)
-        ingrediants_row3_layout.addWidget(self.fat_text)
+        #ingrediants_row3_layout.addWidget(self.brand_text)
+        #ingrediants_row3_layout.addWidget(self.carbs_text)
+        #ingrediants_row3_layout.addWidget(self.protein_text)
+        #ingrediants_row3_layout.addWidget(self.fat_text)
         ingrediants_row3_layout.addSpacing(20)
 
         ingrediants_row3_widget.setLayout(ingrediants_row3_layout)
 
 
-        #Set variants layout
+        #Set ingrediants layout
         ingrediants_layout.addWidget(ingrediants_row1_widget)
         ingrediants_layout.addWidget(spacer)
         ingrediants_layout.addWidget(ingrediants_row2_widget)
         ingrediants_layout.addWidget(spacer2)
-        ingrediants_layout.addWidget(ingrediants_row3_widget)
+        #ingrediants_layout.addWidget(ingrediants_row3_widget)
 
         self.ingrediants_widget.setLayout(ingrediants_layout)
 
@@ -2956,6 +3075,89 @@ class MainWindow(QMainWindow):
         self.central_layout.insertWidget(1, self.ingrediants_widget)
 
         self.current_widget = "Ingrediants"
+
+
+
+
+    def add_ingrediant(self, recipe, variant):
+        
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['variant'] == variant:
+                    brand = variants['brand']
+                    ingrediant = variants['variant']
+                    calories = variants['calories']
+
+        new_ingrediant = {
+            "brand": brand,
+            "ingrediant": ingrediant,
+            "calories": calories,
+            "quantity": 1            
+        }
+
+        for recipes in self.local_recipes:
+            if recipes['recipe'] == recipe:
+                recipes['ingrediants'].append(new_ingrediant)
+
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+
+        self.tab_switcher("Recipes")
+        self.recipe_ingrediants(recipe)
+
+    
+
+
+    def minus_ingrediant(self, recipe, ingrediant, label):
+
+        index_R = 0
+        index_I = 0
+
+        for recipes in self.local_recipes:
+
+            if recipes['recipe'] == recipe:
+
+                for ingrediants in recipes['ingrediants']:
+                    
+                    if ingrediants['ingrediant'] == ingrediant:
+                        ingrediants['quantity'] -= 1
+
+                        if ingrediants['quantity'] > 0:
+                            with open('./src/data.json', 'w') as f:
+                                    json.dump(self.data, f, indent=4)
+
+                            label.setText(str(ingrediants['quantity']))
+                        
+                        else:
+                            self.local_recipes[index_R]['ingrediants'].pop(index_I)
+                            with open('./src/data.json', 'w') as f:
+                                    json.dump(self.data, f, indent=4)
+
+                            self.tab_switcher("Recipes")
+                            self.recipe_ingrediants(recipe)
+
+                    index_I += 1
+            index_R += 1
+
+
+
+
+    def plus_ingrediant(self, recipe, ingrediant, label):
+        
+        for recipes in self.local_recipes:
+            if recipes['recipe'] == recipe:
+
+                for ingrediants in recipes['ingrediants']:
+                    if ingrediants['ingrediant'] == ingrediant:
+
+                        ingrediants['quantity'] += 1
+
+                        with open('./src/data.json', 'w') as f:
+                                json.dump(self.data, f, indent=4)
+
+                        label.setText(str(ingrediants['quantity']))
+
+
 
 
     def pantry(self):
