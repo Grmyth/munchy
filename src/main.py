@@ -1767,7 +1767,7 @@ class MainWindow(QMainWindow):
                                 }
                             """)
 
-        self.save_consumable_button.clicked.connect(lambda: self.save_consumable_edit(self.consumable_text.text()))   
+        self.save_consumable_button.clicked.connect(lambda: self.save_consumable_edit(consumable, self.consumable_text.text()))   
         self.save_consumable_button.hide()
 
         #Row 3 - element 1
@@ -2147,26 +2147,22 @@ class MainWindow(QMainWindow):
 
 
 
-    def save_consumable_edit(self, new):
+    def save_consumable_edit(self, current, new):
 
-        can_save = True
+        if new:
+            for consumables in self.local_consumables:
+                if consumables['consumable'] == current:
 
-        for consumables in self.local_consumables:
-            if consumables['consumable'] == new:
-                can_save = False
-                self.consumable_text.setText("")
-                self.consumable_text.setPlaceholderText("Name taken")
-                self.consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
+                    consumables['consumable'] = new
 
-        if new and can_save:
-            self.local_consumables['consumable'] = new
+                    with open('./src/data.json', 'w') as f:
+                        json.dump(self.data, f, indent=4)
 
-            with open('./src/data.json', 'w') as f:
-                json.dump(self.data, f, indent=4)
+                    self.consumable_button.setText(new)
+                    self.cancel_consumable_edit()
 
-            self.consumable_button.setText(new)
-
-            self.cancel_consumable_edit()
+        else:
+            self.consumable_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
 
 
 
@@ -2737,11 +2733,11 @@ class MainWindow(QMainWindow):
         self.recipe_button.clicked.connect(lambda: self.tab_switcher("Recipes"))
 
         #Row 1 - element 2
-        self.recipe_edit_button = QPushButton("Edit" , self)
-        self.recipe_edit_button.setFixedHeight(60)
-        self.recipe_edit_button.setFixedWidth(160)
-        self.recipe_edit_button.setFont(QFont("Times New Roman", 20)) 
-        self.recipe_edit_button.setStyleSheet("""
+        self.edit_recipe_button = QPushButton("Edit" , self)
+        self.edit_recipe_button.setFixedHeight(60)
+        self.edit_recipe_button.setFixedWidth(160)
+        self.edit_recipe_button.setFont(QFont("Times New Roman", 20)) 
+        self.edit_recipe_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
@@ -2757,7 +2753,7 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
-        #self.recipe_edit_button.clicked.connect(self.consumable_edit)    
+        self.edit_recipe_button.clicked.connect(self.recipe_edit)    
 
         #Row 1 - element 1 - edit mode
         self.delete_recipe_button = QPushButton("Delete" , self)
@@ -2780,7 +2776,7 @@ class MainWindow(QMainWindow):
                                     border: 2px solid #841934; outline: none; 
                                 }
                             """)
-        #self.delete_recipe_button.clicked.connect(lambda: self.delete_consumable_edit(recipe))
+        self.delete_recipe_button.clicked.connect(lambda: self.delete_recipe_edit(recipe))
         self.delete_recipe_button.hide()
 
         #Row 1 - element 2 - edit mode
@@ -2793,11 +2789,11 @@ class MainWindow(QMainWindow):
         self.recipe_text.hide()
 
         #Row 1 - element 3 - edit mode
-        self.cancel_recipe_edit_button = QPushButton("Cancel" , self)
-        self.cancel_recipe_edit_button.setFixedHeight(60)
-        self.cancel_recipe_edit_button.setFixedWidth(160)
-        self.cancel_recipe_edit_button.setFont(QFont("Times New Roman", 20)) 
-        self.cancel_recipe_edit_button.setStyleSheet("""
+        self.cancel_edit_recipe_button = QPushButton("Cancel" , self)
+        self.cancel_edit_recipe_button.setFixedHeight(60)
+        self.cancel_edit_recipe_button.setFixedWidth(160)
+        self.cancel_edit_recipe_button.setFont(QFont("Times New Roman", 20)) 
+        self.cancel_edit_recipe_button.setStyleSheet("""
                                 QPushButton {
                                     color: #645e59; background-color: #171514; border: 2px solid black; 
                                     border-radius: 14px; text-align: center;
@@ -2813,8 +2809,8 @@ class MainWindow(QMainWindow):
                                     border: 2px solid black; outline: none; 
                                 }
                             """)
-        #self.cancel_recipe_edit_button.clicked.connect(self.cancel_consumable_edit)                    
-        self.cancel_recipe_edit_button.hide()
+        self.cancel_edit_recipe_button.clicked.connect(self.cancel_recipe_edit)                    
+        self.cancel_edit_recipe_button.hide()
 
         #Row 1 - element 4 - edit mode
         self.save_recipe_button = QPushButton("Save" , self)
@@ -2838,7 +2834,7 @@ class MainWindow(QMainWindow):
                                 }
                             """)
 
-        #self.save_recipe_button.clicked.connect(lambda: self.save_consumable_edit(self.consumable_text.text()))   
+        self.save_recipe_button.clicked.connect(lambda: self.save_recipe_edit(recipe, self.recipe_text.text()))   
         self.save_recipe_button.hide()
 
         ingrediants_scroll = QScrollArea()
@@ -2867,10 +2863,10 @@ class MainWindow(QMainWindow):
         
         ingrediants_row1_layout.addStretch()
         ingrediants_row1_layout.addWidget(self.recipe_button)
-        ingrediants_row1_layout.addWidget(self.recipe_edit_button)
+        ingrediants_row1_layout.addWidget(self.edit_recipe_button)
         ingrediants_row1_layout.addWidget(self.delete_recipe_button)
         ingrediants_row1_layout.addWidget(self.recipe_text)
-        ingrediants_row1_layout.addWidget(self.cancel_recipe_edit_button)
+        ingrediants_row1_layout.addWidget(self.cancel_edit_recipe_button)
         ingrediants_row1_layout.addWidget(self.save_recipe_button)
         ingrediants_row1_layout.addStretch()
 
@@ -2905,6 +2901,7 @@ class MainWindow(QMainWindow):
         ingrediants_row2_col2_layout.setSpacing(20)        
 
         row = 0
+        self.calories_in_recipe = 0
 
         for consumables in self.local_consumables:
             for variants in consumables['variants']:
@@ -2950,6 +2947,7 @@ class MainWindow(QMainWindow):
                                 if variants['variant'] == ingrediants['ingrediant']:
 
                                     quantity = ingrediants['quantity']
+                                    self.calories_in_recipe += ingrediants['quantity'] * ingrediants['calories']
 
                                     #Element 1
                                     current_ingrediant_text = f"{variants['brand']}: {variants['variant']}"
@@ -3049,12 +3047,17 @@ class MainWindow(QMainWindow):
         ingrediants_row3_layout.setContentsMargins(0, 0, 0, 0)
         ingrediants_row3_layout.setSpacing(40)
 
-        ingrediants_row3_layout.addSpacing(20)
-        #ingrediants_row3_layout.addWidget(self.brand_text)
-        #ingrediants_row3_layout.addWidget(self.carbs_text)
-        #ingrediants_row3_layout.addWidget(self.protein_text)
-        #ingrediants_row3_layout.addWidget(self.fat_text)
-        ingrediants_row3_layout.addSpacing(20)
+        calories_label_text = f"{self.calories_in_recipe}  Calories"
+        self.calories_label = QLabel(calories_label_text, self)
+        self.calories_label.setFixedHeight(60)
+        self.calories_label.setFixedWidth(400)
+        self.calories_label.setAlignment(Qt.AlignCenter)
+        self.calories_label.setFont(QFont("Times New Roman", 20))
+        self.calories_label.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+        ingrediants_row3_layout.addStretch()
+        ingrediants_row3_layout.addWidget(self.calories_label)
+        ingrediants_row3_layout.addStretch()
 
         ingrediants_row3_widget.setLayout(ingrediants_row3_layout)
 
@@ -3064,7 +3067,7 @@ class MainWindow(QMainWindow):
         ingrediants_layout.addWidget(spacer)
         ingrediants_layout.addWidget(ingrediants_row2_widget)
         ingrediants_layout.addWidget(spacer2)
-        #ingrediants_layout.addWidget(ingrediants_row3_widget)
+        ingrediants_layout.addWidget(ingrediants_row3_widget)
 
         self.ingrediants_widget.setLayout(ingrediants_layout)
 
@@ -3075,6 +3078,66 @@ class MainWindow(QMainWindow):
         self.central_layout.insertWidget(1, self.ingrediants_widget)
 
         self.current_widget = "Ingrediants"
+
+
+
+
+    def delete_recipe_edit(self, recipe):
+
+        index = 0
+
+        for recipes in self.local_recipes:
+
+            if recipes['recipe'] == recipe:
+                self.local_recipes.pop(index)
+
+            index += 1
+    
+        with open('./src/data.json', 'w') as f:
+                json.dump(self.data, f, indent=4)
+                
+        self.tab_switcher("Recipes")
+
+
+
+
+    def recipe_edit(self):
+        self.recipe_button.hide()
+        self.edit_recipe_button.hide()
+
+        self.delete_recipe_button.show()
+        self.recipe_text.show()
+        self.cancel_edit_recipe_button.show()
+        self.save_recipe_button.show()
+
+    def cancel_recipe_edit(self):
+        self.delete_recipe_button.hide()
+        self.recipe_text.hide()
+        self.cancel_edit_recipe_button.hide()
+        self.save_recipe_button.hide()
+
+        self.recipe_button.show()
+        self.edit_recipe_button.show()
+
+        
+
+
+    def save_recipe_edit(self, current, new):
+
+        if new:
+            for recipes in self.local_recipes:
+                if recipes['recipe'] == current:
+
+                    recipes['recipe'] = new
+
+                    with open('./src/data.json', 'w') as f:
+                        json.dump(self.data, f, indent=4)
+
+                    self.recipe_button.setText(new)
+                    self.cancel_recipe_edit()
+
+        else:
+            self.recipe_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid #841934; border-radius: 14px")
 
 
 
