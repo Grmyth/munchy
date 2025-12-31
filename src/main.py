@@ -235,6 +235,7 @@ class MainWindow(QMainWindow):
                                     background-color: #171514;
                                 }
                             """)
+        self.pantry_tab.clicked.connect(lambda: self.tab_switcher("Pantry"))
 
         self.planner_tab = QPushButton("Planner", self)
         self.planner_tab.setFixedHeight(106)
@@ -1928,8 +1929,7 @@ class MainWindow(QMainWindow):
                                 QPushButton:focus {
                                     border: 2px solid black; outline: none; 
                                 }
-                            """)   
-        current_variant = self.variant_text.text()
+                            """) 
         self.cancel_edit_variant_button.clicked.connect(self.cancel_edit_variant)
         self.cancel_edit_variant_button.hide()
 
@@ -2285,7 +2285,8 @@ class MainWindow(QMainWindow):
                 "fat": fat, 
                 "servings": servings, 
                 "price": price,
-                "calories": calories
+                "calories": calories,
+                "quantity": 0
             }
 
             index = 0
@@ -2309,6 +2310,8 @@ class MainWindow(QMainWindow):
     def display_variant(self, variant):
 
         self.add_variant_button.hide()
+        self.cancel_edit_variant_button.hide()
+        self.save_edit_variant_button.hide()
         self.delete_variant_button.show()
         self.edit_variant_button.show()
 
@@ -2333,7 +2336,7 @@ class MainWindow(QMainWindow):
                     self.protein_text.setReadOnly(True)
                     self.fat_text.setText("Fat: " + str(variants['fat']))
                     self.fat_text.setReadOnly(True)
-                    self.servings_text.setText(str(variants['servings']))
+                    self.servings_text.setText("Servings: " + str(variants['servings']))
                     self.servings_text.setReadOnly(True)
                     self.price_text.setText("$" + str(variants['price']))
                     self.price_text.setReadOnly(True)
@@ -2367,19 +2370,31 @@ class MainWindow(QMainWindow):
 
     def edit_variant(self):
 
-        self.brand_text.setReadOnly(False)
-        self.variant_text.setReadOnly(False)
-        self.carbs_text.setReadOnly(False)
-        self.protein_text.setReadOnly(False)
-        self.fat_text.setReadOnly(False)
-        self.servings_text.setReadOnly(False)
-        self.price_text.setReadOnly(False)
-        
-
         self.delete_variant_button.hide()
         self.edit_variant_button.hide()
         self.cancel_edit_variant_button.show()
         self.save_edit_variant_button.show()
+
+        variant = self.current_variant
+
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['variant'] == variant:
+                    self.brand_text.setText(str(variants['brand']))
+                    self.brand_text.setReadOnly(False)
+                    self.variant_text.setText(str(variants['variant']))
+                    self.variant_text.setReadOnly(False)
+                    self.carbs_text.setText(str(variants['carbs']))
+                    self.carbs_text.setReadOnly(False)
+                    self.protein_text.setText(str(variants['protein']))
+                    self.protein_text.setReadOnly(False)
+                    self.fat_text.setText(str(variants['fat']))
+                    self.fat_text.setReadOnly(False)
+                    self.servings_text.setText(str(variants['servings']))
+                    self.servings_text.setReadOnly(False)
+                    self.price_text.setText(str(variants['price']))
+                    self.price_text.setReadOnly(False)
+
 
 
 
@@ -2395,21 +2410,26 @@ class MainWindow(QMainWindow):
         for consumables in self.local_consumables:
             for variants in consumables['variants']:
                 if variants['variant'] == variant:
-                    self.brand_text.setText(variants['brand'])
-                    self.brand_text.setReadOnly(True)
-                    self.variant_text.setText(variants['variant'])
-                    self.variant_text.setReadOnly(True)
-                    self.carbs_text.setText(str(variants['carbs']))
-                    self.carbs_text.setReadOnly(True)
-                    self.protein_text.setText(str(variants['protein']))
-                    self.protein_text.setReadOnly(True)
-                    self.fat_text.setText(str(variants['fat']))
-                    self.fat_text.setReadOnly(True)
-                    self.servings_text.setText(str(variants['servings']))
-                    self.servings_text.setReadOnly(True)
-                    self.price_text.setText(str(variants['price']))
-                    self.price_text.setReadOnly(True)
 
+                    variant_id = f"{variants['brand']}: {variants['variant']}"
+
+                    calories = float(f"{variants['calories']:.2f}")
+                    calories_label = f"Cals per serving: {calories}"
+
+                    self.brand_text.setText(variant_id)
+                    self.brand_text.setReadOnly(True)
+                    self.variant_text.setText(calories_label)
+                    self.variant_text.setReadOnly(True)
+                    self.carbs_text.setText("Carbs: " + str(variants['carbs']))
+                    self.carbs_text.setReadOnly(True)
+                    self.protein_text.setText("Protein: " + str(variants['protein']))
+                    self.protein_text.setReadOnly(True)
+                    self.fat_text.setText("Fat: " + str(variants['fat']))
+                    self.fat_text.setReadOnly(True)
+                    self.servings_text.setText("Servings: " + str(variants['servings']))
+                    self.servings_text.setReadOnly(True)
+                    self.price_text.setText("$" + str(variants['price']))
+                    self.price_text.setReadOnly(True)
 
 
 
@@ -2515,23 +2535,24 @@ class MainWindow(QMainWindow):
 
             calories = temp_carbs + temp_protein + temp_fat
 
-            variant_update = {
-                "brand": brand,
-                "variant": variant,
-                "carbs": carbs,
-                "protein": protein,
-                "fat": fat, 
-                "servings": servings, 
-                "price": price,
-                "calories": calories
-            }
-
             index_C = 0
             index_V = 0
 
             for consumables in self.local_consumables:
                 for variants in consumables['variants']:
                     if variants['variant'] == current_variant:
+
+                        variant_update = {
+                            "brand": brand,
+                            "variant": variant,
+                            "carbs": carbs,
+                            "protein": protein,
+                            "fat": fat, 
+                            "servings": servings, 
+                            "price": price,
+                            "calories": calories,
+                            "quantity": variants['quantity']
+            }
 
                         self.local_consumables[index_C]['variants'][index_V] = variant_update
 
@@ -2946,7 +2967,6 @@ class MainWindow(QMainWindow):
                             for ingrediants in recipes['ingrediants']:
                                 if variants['variant'] == ingrediants['ingrediant']:
 
-                                    quantity = ingrediants['quantity']
                                     self.calories_in_recipe += ingrediants['quantity'] * ingrediants['calories']
 
                                     #Element 1
@@ -2961,7 +2981,7 @@ class MainWindow(QMainWindow):
                                     ingrediants_row2_col2_layout.addWidget(ingrediant_text, row, 0)
 
                                     #Element 3
-                                    quantity_text = QLabel(str(quantity), self)
+                                    quantity_text = QLabel(str(ingrediants['quantity']), self)
                                     quantity_text.setFixedHeight(40)
                                     quantity_text.setFixedWidth(60)
                                     quantity_text.setAlignment(Qt.AlignCenter)
@@ -3224,7 +3244,160 @@ class MainWindow(QMainWindow):
 
 
     def pantry(self):
-        pass
+        
+        pantry_scroll = QScrollArea()
+        pantry_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        pantry_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        self.pantry_widget = QWidget()
+        self.pantry_widget.setFixedHeight(944)
+        self.pantry_widget.setFixedWidth(1400)
+
+        pantry_layout = QVBoxLayout()
+        pantry_layout.setContentsMargins(0, 0, 0, 0)
+        pantry_layout.setSpacing(0)     
+
+        pantry_grid_widget = QWidget()
+        pantry_grid_widget.setFixedWidth(1400)
+
+        pantry_grid_layout = QGridLayout()
+        pantry_grid_layout.setContentsMargins(60, 60, 60, 60)
+        pantry_grid_layout.setSpacing(20)     
+        
+        is_left_column = True
+        row = 0
+        
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+
+                #Element 1
+                current_variant_text = f"{variants['brand']}: {variants['variant']}"
+
+                variant_text = QLabel(current_variant_text, self)
+                variant_text.setFixedHeight(80)
+                variant_text.setAlignment(Qt.AlignCenter)
+                variant_text.setFont(QFont("Times New Roman", 20))
+                variant_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+                
+
+                #Element 3
+                quantity_text = QLabel(str(variants['quantity']), self)
+                quantity_text.setFixedHeight(40)
+                quantity_text.setFixedWidth(60)
+                quantity_text.setAlignment(Qt.AlignCenter)
+                quantity_text.setFont(QFont("Times New Roman", 20))
+                quantity_text.setStyleSheet("color: #645e59; background-color: #171514; border: 2px solid black; border-radius: 14px")
+
+                #Element 2
+                minus_quantity_button = QPushButton("<", self)
+                minus_quantity_button.setFixedHeight(60)
+                minus_quantity_button.setFixedWidth(60)
+                minus_quantity_button.setFont(QFont("Times New Roman", 20))
+                minus_quantity_button.setStyleSheet("""
+                                    QPushButton {
+                                        color: #645e59; background-color: #171514; border: 2px solid black; 
+                                        border-radius: 14px; text-align: center;
+                                    }
+
+                                    QPushButton:Hover {
+                                        background-color: #1d1a19;
+                                    }
+                                    QPushButton:pressed {
+                                        background-color: #1d1a19;
+                                            }
+                                    QPushButton:focus {
+                                        border: 2px solid black; outline: none; 
+                                    }
+                                """)
+                minus_quantity_button.clicked.connect(partial(self.minus_quantity, variants['brand'], variants['variant'], quantity_text)) 
+
+                #Element 4
+                plus_quantity_button = QPushButton(">", self)
+                plus_quantity_button.setFixedHeight(60)
+                plus_quantity_button.setFixedWidth(60)
+                plus_quantity_button.setFont(QFont("Times New Roman", 20))
+                plus_quantity_button.setStyleSheet("""
+                                    QPushButton {
+                                        color: #645e59; background-color: #171514; border: 2px solid black; 
+                                        border-radius: 14px; text-align: center;
+                                    }
+
+                                    QPushButton:Hover {
+                                        background-color: #1d1a19;
+                                    }
+                                    QPushButton:pressed {
+                                        background-color: #1d1a19;
+                                            }
+                                    QPushButton:focus {
+                                        border: 2px solid black; outline: none; 
+                                    }
+                                """)
+                plus_quantity_button.clicked.connect(partial(self.plus_quantity, variants['brand'], variants['variant'], quantity_text)) 
+
+                if is_left_column:
+                    
+                    pantry_grid_layout.addWidget(variant_text, row, 0)
+                    pantry_grid_layout.addWidget(minus_quantity_button, row, 1)
+                    pantry_grid_layout.addWidget(quantity_text, row, 2)
+                    pantry_grid_layout.addWidget(plus_quantity_button, row, 3)
+                    
+                    is_left_column = False
+
+                else:
+
+                    pantry_grid_layout.addWidget(variant_text, row, 4)
+                    pantry_grid_layout.addWidget(minus_quantity_button, row, 5)
+                    pantry_grid_layout.addWidget(quantity_text, row, 6)
+                    pantry_grid_layout.addWidget(plus_quantity_button, row, 7)
+
+                    is_left_column = True
+                    row += 1
+
+        pantry_grid_widget.setLayout(pantry_grid_layout)
+
+        pantry_scroll.setWidget(pantry_grid_widget)
+
+        pantry_layout.addWidget(pantry_scroll)
+
+        self.pantry_widget.setLayout(pantry_layout)
+
+        self.central_layout.insertWidget(1, self.pantry_widget)
+
+        self.current_widget = "Pantry"
+
+    
+
+
+    def minus_quantity(self, brand, variant, label):
+
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['brand'] == brand and variants['variant'] == variant:
+                        
+                    if variants['quantity'] > 0:
+
+                        variants['quantity'] -= 1
+
+                        with open('./src/data.json', 'w') as f:
+                            json.dump(self.data, f, indent=4)
+
+                        label.setText(str(variants['quantity']))
+
+
+
+    def plus_quantity(self, brand, variant, label):
+        
+        for consumables in self.local_consumables:
+            for variants in consumables['variants']:
+                if variants['brand'] == brand and variants['variant'] == variant:
+
+                    variants['quantity'] += 1
+
+                    with open('./src/data.json', 'w') as f:
+                            json.dump(self.data, f, indent=4)
+
+                    label.setText(str(variants['quantity']))
 
 
 
@@ -3267,6 +3440,10 @@ class MainWindow(QMainWindow):
                 self.central_layout.removeWidget(self.ingrediants_widget)
                 self.ingrediants_widget.setParent(None)
                 self.ingrediants_widget.deleteLater()
+            case "Pantry":
+                self.central_layout.removeWidget(self.pantry_widget)
+                self.pantry_widget.setParent(None)
+                self.pantry_widget.deleteLater()
 
         match new_widget:
             case "New Profile":
@@ -3277,72 +3454,16 @@ class MainWindow(QMainWindow):
                 self.consumables()
             case "Recipes":
                 self.recipes()
+            case "Pantry":
+                self.pantry()
 
         
     
-    def create_consumable(self):
-        #TODO - Reset grid to show only new consumable
-        #Allow user to type in a name for the new consumable and confirm
-        createProduct() # pass in consumable
-        pass
-
-    def delete_consumable(self):
-        #TODO - delete the consumable container
-        pass
-
-    def add_product(self, consumable):
-        #TODO - Show the consumable (parent of this product)
-        #Allow user to create a product with required details
-            #Brand/Variant
-            #Quantity
-            #Carbs
-            #Protein
-            #Fat
-            #Average cost
-        pass
-
-    def remove_product(self):
-        #TODO - Delete product from consumable (parent of this product)
-        pass
-
-    def create_recipe(self, ingredient):
-        #TODO - Creates a Recipe container
-        add_ingredient() # pass in ingredient
-        pass
-
-    def delete_recipe(self):
-        #TODO - Deletes the selected Recipe container
-        pass
-
-    def add_ingredient(self):
-        #TODO - Add a product from the stored consumables to recipe
-        #Choose quantity of that product
-        pass
-
-    def remove_ingredient(self):
-        #TODO - Remove product from recipe
-        pass
+   
 
     def select_calendar_day(self):
         #TODO - handle logic for clicking into and out of day on calender
         pass
-
-    def item_min_increase(self):
-        #TODO - Increase the storage amount of a consumable by it's minimum logical quantity amount
-        pass
-
-    def item_max_increase(self):
-        #TODO - Increase the storage amount of a consumable by it's whole quantity amount
-        pass
-
-    def item_min_decrease(self):
-        #TODO - Decrease the storage amount of a consumable by it's minimum logical quantity amount
-        pass
-
-    def item_max_decrease(self):
-        #TODO - Decrease the storage amount of a consumable by it's whole quantity amount
-        pass
-
 
     def generate_shopping_list(self):
         #TODO - Read a form filled in by user on click, then generate the shopping list
