@@ -1,11 +1,89 @@
 {
     "profiles": [
-        
+        {
+            "picture": "/home/grmyth/Pictures/Misc/CrunchBandicoot.png",
+            "name": "BOT",
+            "dob": {
+                "day": 23,
+                "month": 12,
+                "year": 2001
+            },
+            "gender": "Male",
+            "height": 143,
+            "weight": 168.0,
+            "activity": 3
+        }
     ],
     "consumables": [
-        
+        {
+            "consumable": "Soda",
+            "variants": [
+                {
+                    "brand": "Coke",
+                    "variant": "Vanilla - 1.5L",
+                    "carbs": 3.0,
+                    "protein": 2.0,
+                    "fat": 1.0,
+                    "servings": 6,
+                    "price": 2.99,
+                    "calories": 29.0,
+                    "quantity": 2
+                },
+                {
+                    "brand": "Coke",
+                    "variant": "Raspberry - 1.5L",
+                    "carbs": 6.0,
+                    "protein": 8.0,
+                    "fat": 2.0,
+                    "servings": 6,
+                    "price": 3.99,
+                    "calories": 74.0,
+                    "quantity": 6
+                }
+            ]
+        },
+        {
+            "consumable": "Chicken",
+            "variants": [
+                {
+                    "brand": "Tegal",
+                    "variant": "Whole 12kg",
+                    "carbs": 18.0,
+                    "protein": 23.0,
+                    "fat": 8.0,
+                    "servings": 4,
+                    "price": 11.99,
+                    "calories": 236.0,
+                    "quantity": 5
+                }
+            ]
+        },
+        {
+            "consumable": "Steak",
+            "variants": []
+        },
+        {
+            "consumable": "Bread",
+            "variants": []
+        }
     ],
     "recipes": [
-        
+        {
+            "recipe": "Roast",
+            "ingrediants": [
+                {
+                    "brand": "Coke",
+                    "ingrediant": "Vanilla - 1.5L",
+                    "calories": 29.0,
+                    "quantity": 3
+                },
+                {
+                    "brand": "Tegal",
+                    "ingrediant": "Whole 12kg",
+                    "calories": 236.0,
+                    "quantity": 2
+                }
+            ]
+        }
     ]
 }
